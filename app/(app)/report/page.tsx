@@ -13,6 +13,11 @@ export default function ReportPage() {
         <p className="mt-2 max-w-2xl text-muted">
           Aperçu premium verrouillé — monétisation simulée pour la V1.
         </p>
+        <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted">
+          Obtiens tes objectifs personnalisés et ton plan minimal pour les 4
+          prochaines semaines — avec le détail du limiteur et du Performance Gap
+          quand tu passes en offre payante (démo).
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -22,6 +27,10 @@ export default function ReportPage() {
         <LockedCard title="Objectifs 4 semaines" description="Version détaillée avec charges, volumes et retests." />
         <LockedCard title="Plan minimal efficace" description="Semaines structurées avec progressions guidées." />
         <LockedCard title="Équivalences machines" description="Traductions rameur, SkiErg, vélo, tapis incliné." />
+        <LockedCard
+          title="Retest 30 jours & export"
+          description="Cadence de retest et export PDF du rapport — prévu après intégration paiement."
+        />
       </div>
 
       <div>

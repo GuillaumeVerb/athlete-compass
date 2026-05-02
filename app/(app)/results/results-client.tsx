@@ -196,12 +196,17 @@ export function ResultsClient() {
 
       <div className="flex flex-col gap-4 rounded-2xl border border-neon/25 bg-neon/10 p-6 md:flex-row md:items-center md:justify-between">
         <p className="max-w-xl text-sm leading-relaxed text-muted">
-          Débloque ton rapport complet pour voir ton plan personnalisé, ton
-          Performance Gap détaillé et les équivalences machines.
+          Débloque ton rapport complet pour comprendre ce qui limite ton physique
+          hybride : Performance Gap, plan détaillé et équivalences machines.
         </p>
-        <Button asChild className="shrink-0 rounded-xl">
-          <Link href="/report">Débloquer mon rapport</Link>
-        </Button>
+        <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
+          <Button asChild className="rounded-xl">
+            <Link href="/report">Débloquer mon rapport</Link>
+          </Button>
+          <Button asChild variant="outline" className="rounded-xl">
+            <Link href="/pricing">Voir les offres</Link>
+          </Button>
+        </div>
       </div>
 
       <MedicalDisclaimer />

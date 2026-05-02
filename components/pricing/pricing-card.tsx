@@ -8,12 +8,15 @@ export function PricingCard({
   features,
   highlight,
   ctaLabel,
+  checkoutDisabled = true,
 }: {
   title: string;
   price: string;
   features: string[];
   highlight?: boolean;
   ctaLabel?: string;
+  /** V1 : pas de Stripe — bouton désactivé par défaut */
+  checkoutDisabled?: boolean;
 }) {
   return (
     <div
@@ -45,9 +48,20 @@ export function PricingCard({
       <Button
         className="mt-8 w-full rounded-xl"
         variant={highlight ? "amber" : "default"}
+        disabled={checkoutDisabled}
+        title={
+          checkoutDisabled
+            ? "Paiement non disponible en démo V1"
+            : undefined
+        }
       >
-        {ctaLabel ?? "Continuer"}
+        {ctaLabel ?? (checkoutDisabled ? "Bientôt disponible" : "Continuer")}
       </Button>
+      {checkoutDisabled ? (
+        <p className="mt-2 text-center text-[10px] text-muted">
+          Simulation — aucun prélèvement
+        </p>
+      ) : null}
     </div>
   );
 }
