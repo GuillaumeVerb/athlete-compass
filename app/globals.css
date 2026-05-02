@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-outfit);
+
+  --color-background: #05070a;
+  --color-surface: #111820;
+  --color-surface-elevated: #181c26;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-muted: #8b98a8;
+  --color-foreground: #f4f7fa;
+  --color-neon: #52ff72;
+  --color-neon-dim: #1a6b2a;
+  --color-amber: #f5b82e;
+  --color-amber-muted: #8a6a2a;
+}
+
+:root {
+  --background: #05070a;
+  --foreground: #f4f7fa;
+  --surface: #111820;
+  --surface-elevated: #181c26;
+  --border: rgba(255, 255, 255, 0.08);
+  --muted: #8b98a8;
+  --neon: #52ff72;
+  --neon-glow: rgba(82, 255, 114, 0.35);
+  --amber: #f5b82e;
+  /* Prompt 06 — alias sémantiques */
+  --ac-bg: #05070a;
+  --ac-surface: #111820;
+  --ac-border: rgba(255, 255, 255, 0.08);
+  --ac-text: #f4f7fa;
+  --ac-muted: #8b98a8;
+  --ac-neon: #52ff72;
+  --ac-amber: #f5b82e;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+}
+
+.text-display {
+  font-family: var(--font-outfit), var(--font-dm-sans), system-ui, sans-serif;
+}
+
+.card-surface {
+  background: linear-gradient(
+    145deg,
+    rgba(17, 24, 32, 0.96) 0%,
+    rgba(8, 13, 18, 0.98) 100%
+  );
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+
+.neon-border {
+  box-shadow:
+    0 0 0 1px rgba(82, 255, 114, 0.15),
+    0 0 24px -8px var(--neon-glow);
+}
+
+.mesh-bg {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(82, 255, 114, 0.1), transparent),
+    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(245, 184, 46, 0.07), transparent),
+    var(--background);
+}
