@@ -11,7 +11,7 @@ export function WeekPlan({ weeks }: { weeks: PlanWeek[] }) {
           <TabsTrigger
             key={w.week}
             value={String(w.week)}
-            className="rounded-lg data-[state=active]:text-[#52ff72]"
+            className="rounded-lg data-[state=active]:text-neon"
           >
             Semaine {w.week}
           </TabsTrigger>
@@ -24,9 +24,9 @@ export function WeekPlan({ weeks }: { weeks: PlanWeek[] }) {
               {w.sessions.map((s) => (
                 <div
                   key={s.title}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#252a36] bg-[#12151c]/80 px-4 py-3"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface/80 px-4 py-3"
                 >
-                  <span className="text-sm font-medium text-white">
+                  <span className="text-sm font-medium text-foreground">
                     {s.title}
                   </span>
                   <div className="flex flex-wrap gap-1.5">
@@ -45,11 +45,11 @@ export function WeekPlan({ weeks }: { weeks: PlanWeek[] }) {
                   <CardTitle>Objectif de la semaine</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <p className="text-sm text-[#c5cad8]">{w.objective}</p>
-                  <ul className="text-sm text-[#9aa3b8] space-y-2">
+                  <p className="text-sm text-muted">{w.objective}</p>
+                  <ul className="space-y-2 text-sm text-muted">
                     {w.objectiveChecks.map((c) => (
                       <li key={c} className="flex gap-2">
-                        <input type="checkbox" className="mt-1 accent-[#52ff72]" />
+                        <input type="checkbox" className="mt-1 accent-neon" />
                         <span>{c}</span>
                       </li>
                     ))}
@@ -61,11 +61,11 @@ export function WeekPlan({ weeks }: { weeks: PlanWeek[] }) {
                   <CardTitle>Focus & cohérence</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-[#c5cad8]">{w.focus}</p>
-                  <p className="text-display text-2xl font-semibold text-[#f5b942] mt-3">
+                  <p className="text-sm text-muted">{w.focus}</p>
+                  <p className="text-display mt-3 text-2xl font-semibold text-amber">
                     {w.coherencePct}%
                   </p>
-                  <p className="text-xs text-[#6b7289] mt-1">
+                  <p className="mt-1 text-xs text-muted">
                     Score de cohérence prévu (démo)
                   </p>
                 </CardContent>

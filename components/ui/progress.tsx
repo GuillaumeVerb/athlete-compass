@@ -9,13 +9,13 @@ export function Progress({ className, value, ...props }: ProgressProps) {
   return (
     <div
       className={cn(
-        "relative h-2 w-full overflow-hidden rounded-full bg-[#0a0c10] border border-[#252a36]",
+        "relative h-2 w-full overflow-hidden rounded-full border border-border bg-background",
         className,
       )}
       {...props}
     >
       <div
-        className="h-full rounded-full bg-gradient-to-r from-[#145522] to-[#52ff72] transition-all duration-500 shadow-[0_0_12px_rgba(82,255,114,0.35)]"
+        className="h-full rounded-full bg-gradient-to-r from-neon-dim to-neon transition-all duration-500 shadow-[0_0_12px_rgba(82,255,114,0.35)]"
         style={{ width: `${v}%` }}
       />
     </div>

@@ -7,10 +7,10 @@ export default function ReportPage() {
   return (
     <div className="space-y-10">
       <div>
-        <h1 className="text-display text-3xl font-semibold text-white">
+        <h1 className="text-display text-3xl font-semibold text-foreground">
           Ton rapport complet
         </h1>
-        <p className="text-[#9aa3b8] mt-2 max-w-2xl">
+        <p className="mt-2 max-w-2xl text-muted">
           Aperçu premium verrouillé — monétisation simulée pour la V1.
         </p>
       </div>
@@ -25,7 +25,7 @@ export default function ReportPage() {
       </div>
 
       <div>
-        <h2 className="text-display text-xl font-semibold text-white mb-4">
+        <h2 className="text-display mb-4 text-xl font-semibold text-foreground">
           Débloquer
         </h2>
         <div className="grid gap-6 md:grid-cols-3">
@@ -67,11 +67,11 @@ export default function ReportPage() {
       <div className="flex flex-wrap gap-4">
         <Link
           href="/pricing"
-          className="text-sm text-[#52ff72] hover:underline"
+          className="text-sm text-neon hover:underline"
         >
           Voir la page tarifs
         </Link>
-        <Link href="/plan" className="text-sm text-[#52ff72] hover:underline">
+        <Link href="/plan" className="text-sm text-neon hover:underline">
           Aperçu du plan 4 semaines
         </Link>
       </div>

@@ -4,19 +4,19 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#52ff72]/40 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon/40 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "bg-[#52ff72] text-[#05070a] hover:bg-[#7bff94] shadow-[0_0_20px_-4px_rgba(82,255,114,0.45)]",
+          "bg-neon text-background hover:bg-neon/90 shadow-[0_0_20px_-4px_rgba(82,255,114,0.45)]",
         secondary:
-          "bg-[#181c26] text-foreground border border-[#252a36] hover:bg-[#1f2430]",
+          "bg-surface-elevated text-foreground border border-border hover:bg-surface",
         ghost: "hover:bg-white/5 text-foreground",
         amber:
-          "bg-[#f5b942] text-[#05070a] hover:bg-[#ffd060] border border-[#c9a030]",
+          "bg-amber text-background hover:bg-amber/90 border border-amber-muted",
         outline:
-          "border border-[#52ff72]/40 text-[#52ff72] hover:bg-[#52ff72]/10",
+          "border border-neon/40 text-neon hover:bg-neon/10",
       },
       size: {
         default: "h-11 px-5 py-2",

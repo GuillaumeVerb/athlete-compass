@@ -64,10 +64,10 @@ export function NextTestContent() {
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-xs uppercase tracking-widest text-[#6b7289]">
+        <p className="text-xs font-medium uppercase tracking-widest text-muted">
           Pourquoi ce test ?
         </p>
-        <h1 className="text-display text-3xl font-semibold text-white mt-2">
+        <h1 className="text-display mt-2 text-3xl font-semibold text-foreground">
           Test recommandé : {proto.title}
         </h1>
       </div>
@@ -75,18 +75,18 @@ export function NextTestContent() {
       <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
         <Card>
           <CardContent className="p-6 space-y-6">
-            <p className="text-[#c5cad8] leading-relaxed">{extra.body}</p>
+            <p className="leading-relaxed text-muted">{extra.body}</p>
             <div>
-              <p className="text-sm font-semibold text-white mb-3">
+              <p className="mb-3 text-sm font-semibold text-foreground">
                 Ce que ce test va améliorer :
               </p>
-              <ul className="space-y-2 text-sm text-[#9aa3b8] list-disc pl-5">
+              <ul className="list-disc space-y-2 pl-5 text-sm text-muted">
                 {extra.bullets.map((b) => (
                   <li key={b}>{b}</li>
                 ))}
               </ul>
             </div>
-            <p className="text-xs text-[#6b7289]">
+            <p className="text-xs text-muted">
               Saisie : {proto.inputHint}
             </p>
             <Button asChild variant="default" className="rounded-xl">
@@ -95,9 +95,9 @@ export function NextTestContent() {
           </CardContent>
         </Card>
 
-        <div className="relative aspect-[4/3] rounded-2xl border border-[#252a36] overflow-hidden bg-gradient-to-br from-[#12151c] to-[#0a0c10]">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-surface to-background">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(82,255,114,0.15),transparent_55%)]" />
-          <p className="absolute bottom-4 left-4 text-sm text-[#8b92a6]">
+          <p className="absolute bottom-4 left-4 text-sm text-muted">
             Visuel erg / salle (placeholder)
           </p>
         </div>

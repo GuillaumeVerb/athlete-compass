@@ -2,11 +2,11 @@ import type { EquivTableRow } from "@/lib/equipment/equivalences";
 
 export function EquivalenceTable({ rows }: { rows: EquivTableRow[] }) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-[#252a36]">
-      <table className="w-full text-sm text-left min-w-[920px]">
-        <thead className="bg-[#12151c] text-[#9aa3b8] text-[10px] uppercase tracking-wider">
+    <div className="overflow-x-auto rounded-2xl border border-border">
+      <table className="w-full min-w-[920px] text-left text-sm">
+        <thead className="bg-surface text-[10px] font-medium uppercase tracking-wider text-muted">
           <tr>
-            <th className="px-3 py-3 w-44">Scénario</th>
+            <th className="w-44 px-3 py-3">Scénario</th>
             <th className="px-3 py-3">Rameur</th>
             <th className="px-3 py-3">SkiErg</th>
             <th className="px-3 py-3">Vélo / BikeErg</th>
@@ -16,26 +16,28 @@ export function EquivalenceTable({ rows }: { rows: EquivTableRow[] }) {
             <th className="px-3 py-3">Autre</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#252a36]">
+        <tbody className="divide-y divide-border">
           {rows.map((row) => (
             <tr
               key={row.id}
-              className={row.locked ? "opacity-55 bg-[#0a0c10]/30" : "bg-[#0a0c10]/40"}
+              className={
+                row.locked ? "bg-background/30 opacity-55" : "bg-background/40"
+              }
             >
-              <td className="px-3 py-3 font-medium text-white align-top">
+              <td className="px-3 py-3 align-top font-medium text-foreground">
                 {row.scenario}
               </td>
-              <td className="px-3 py-3 text-[#c5cad8] align-top">{row.rower}</td>
-              <td className="px-3 py-3 text-[#c5cad8] align-top">{row.skierg}</td>
-              <td className="px-3 py-3 text-[#c5cad8] align-top">{row.bike}</td>
-              <td className="px-3 py-3 text-[#c5cad8] align-top">
+              <td className="px-3 py-3 align-top text-muted">{row.rower}</td>
+              <td className="px-3 py-3 align-top text-muted">{row.skierg}</td>
+              <td className="px-3 py-3 align-top text-muted">{row.bike}</td>
+              <td className="px-3 py-3 align-top text-muted">
                 {row.assaultBike}
               </td>
-              <td className="px-3 py-3 text-[#c5cad8] align-top">
+              <td className="px-3 py-3 align-top text-muted">
                 {row.inclineTread}
               </td>
-              <td className="px-3 py-3 text-[#c5cad8] align-top">{row.run}</td>
-              <td className="px-3 py-3 text-[#c5cad8] align-top">{row.other}</td>
+              <td className="px-3 py-3 align-top text-muted">{row.run}</td>
+              <td className="px-3 py-3 align-top text-muted">{row.other}</td>
             </tr>
           ))}
         </tbody>

@@ -5,7 +5,7 @@ export default function NextTestPage() {
   return (
     <Suspense
       fallback={
-        <div className="animate-pulse h-40 rounded-2xl bg-[#181c26]" />
+        <div className="h-40 animate-pulse rounded-2xl bg-surface-elevated" />
       }
     >
       <NextTestContent />

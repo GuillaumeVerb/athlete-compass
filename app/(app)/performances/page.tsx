@@ -5,10 +5,10 @@ export default function PerformancesPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-display text-3xl font-semibold text-white tracking-tight">
+        <h1 className="text-display text-3xl font-semibold text-foreground tracking-tight">
           Performances
         </h1>
-        <p className="text-[#9aa3b8] mt-2 max-w-2xl">
+        <p className="mt-2 max-w-2xl text-muted">
           Saisis les tests que tu as réellement passés. Les champs vides
           diminuent la fiabilité du score mais restent autorisés.
         </p>

@@ -15,9 +15,9 @@ export function EquivalenceLightLegsBanner() {
   if (!active) return null;
 
   return (
-    <div className="rounded-2xl border border-[#f5b942]/40 bg-[#f5b942]/[0.09] p-4 text-sm text-[#e8eaf0]">
-      <p className="font-medium text-[#f5b942]">Contrainte active : moins de cuisses</p>
-      <p className="mt-2 text-[#c5cad8] leading-relaxed">
+    <div className="rounded-2xl border border-amber/40 bg-amber/10 p-4 text-sm text-foreground">
+      <p className="font-medium text-amber">Contrainte active : moins de cuisses</p>
+      <p className="mt-2 leading-relaxed text-muted">
         Les cartes surlignées rappellent des options généralement plus digestes
         pour les quadriceps. Ajuste toujours selon ta sensation du jour.
       </p>

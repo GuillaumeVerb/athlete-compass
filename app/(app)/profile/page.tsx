@@ -5,10 +5,10 @@ export default function ProfilePage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-display text-3xl font-semibold text-white tracking-tight">
+        <h1 className="text-display text-3xl font-semibold text-foreground tracking-tight">
           Profil athlète
         </h1>
-        <p className="text-[#9aa3b8] mt-2 max-w-2xl">
+        <p className="mt-2 max-w-2xl text-muted">
           Ces informations servent à contextualiser tes performances et les
           scores relatifs (notamment la force / poids de corps).
         </p>

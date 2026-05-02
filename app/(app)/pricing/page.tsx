@@ -5,10 +5,10 @@ export default function PricingPage() {
   return (
     <div className="space-y-10">
       <div>
-        <h1 className="text-display text-3xl font-semibold text-white">
+        <h1 className="text-display text-3xl font-semibold text-foreground">
           Tarifs
         </h1>
-        <p className="text-[#9aa3b8] mt-2 max-w-2xl">
+        <p className="mt-2 max-w-2xl text-muted">
           Paiement non connecté en V1 — interface de prévisualisation produit.
         </p>
       </div>

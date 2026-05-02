@@ -4,7 +4,7 @@ export function MedicalDisclaimer({ className }: { className?: string }) {
   return (
     <p
       className={cn(
-        "text-xs leading-relaxed text-[#6b7289] max-w-prose",
+        "text-xs leading-relaxed text-muted/80 max-w-prose",
         className,
       )}
     >
