@@ -117,8 +117,8 @@ export function ResultsClient() {
             Ton aperçu
           </h1>
           <p className="max-w-xl text-sm leading-relaxed text-muted sm:text-base">
-            Vue synthétique — rapport détaillé disponible en offre premium
-            (démo).
+            Hybrid Score, profil athlétique, limiteur principal, fiabilité du
+            score — le détail pondéré par ton objectif est sous le score.
           </p>
         </div>
         <div className="flex w-full max-w-md shrink-0 flex-col gap-2 sm:items-end">
@@ -140,8 +140,9 @@ export function ResultsClient() {
             Lecture encore limitée
           </p>
           <p className="mt-2 text-sm leading-relaxed text-muted">
-            Ton score est encore provisoire. Ajoute au moins 3 tests pour obtenir
-            une première lecture utile.
+            Ton score est encore provisoire — la{" "}
+            <strong className="text-foreground">fiabilité du score</strong>{" "}
+            montera quand tu auras au moins 3 tests renseignés.
           </p>
           <Button asChild variant="outline" className="mt-4 rounded-xl">
             <Link href="/performances">Compléter mes performances</Link>
@@ -177,8 +178,11 @@ export function ResultsClient() {
             Âge athlétique & Hybrid Score
           </SectionTitle>
           <p className="mt-2 max-w-2xl text-sm text-muted">
-            Les deux indicateurs principaux — le détail des poids appliqués à
-            ton objectif est juste au-dessus du score.
+            Les deux indicateurs principaux. Les pondérations liées à ton
+            objectif sont rappelées au-dessus du Hybrid Score —{" "}
+            <span className="text-muted/80">
+              estimation de performance, pas mesure biologique.
+            </span>
           </p>
         </div>
         <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
@@ -203,8 +207,9 @@ export function ResultsClient() {
             Cinq piliers en radar
           </SectionTitle>
           <p className="mt-2 max-w-2xl text-sm text-muted">
-            Lecture rapide des forces et angles morts par rapport au référentiel
-            hybride.
+            Lecture rapide des cinq piliers — repère ton{" "}
+            <strong className="font-medium text-foreground/90">Performance Gap</strong>{" "}
+            visuel.
           </p>
         </div>
         <ResultsRadarChart breakdown={result.breakdown} />
@@ -242,10 +247,17 @@ export function ResultsClient() {
       </section>
 
       <div className="flex flex-col gap-4 rounded-2xl border border-neon/25 bg-neon/10 p-6 md:flex-row md:items-center md:justify-between">
-        <p className="max-w-xl text-sm leading-relaxed text-muted">
-          Débloque ton rapport complet pour comprendre ce qui limite ton physique
-          hybride : Performance Gap, plan détaillé et équivalences machines.
-        </p>
+        <div className="max-w-xl space-y-2 text-sm leading-relaxed text-muted">
+          <p>
+            Débloque ton rapport complet pour comprendre ton{" "}
+            <strong className="text-foreground">Performance Gap</strong> et
+            obtenir ton <strong className="text-foreground">plan minimal sur 4 semaines</strong>.
+          </p>
+          <p className="text-xs text-muted/90">
+            Le gratuit te montre où tu en es. Le rapport complet te montre quoi
+            faire maintenant.
+          </p>
+        </div>
         <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
           <Button asChild className="rounded-xl">
             <Link href="/report">Débloquer mon rapport</Link>

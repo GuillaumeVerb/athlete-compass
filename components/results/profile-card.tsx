@@ -10,7 +10,7 @@ export function ProfileCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Ton profil</CardTitle>
+        <CardTitle>Profil athlétique</CardTitle>
       </CardHeader>
       <CardContent>
         <p className="text-display text-xl font-semibold text-neon">

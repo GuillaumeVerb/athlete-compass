@@ -93,13 +93,14 @@ export default function Home() {
       >
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-display text-2xl font-semibold text-foreground">
-            Un diagnostic, pas une app fitness
+            Pas une app fitness de plus
           </h2>
           <p className="mt-4 leading-relaxed text-muted">
-            Athlete Compass synthétise quelques tests clés pour estimer ton
-            profil hybride, ton limiteur principal et une prochaine action
-            simple — avec un plan 4 semaines minimal quand tu passes en
-            premium (démo).
+            Athlete Compass ne remplace pas ton programme. Il t&apos;aide à
+            comprendre si ton entraînement construit vraiment le corps que tu
+            veux : fort, endurant, résistant et athlétique — avec un diagnostic
+            de performance court, des tests standardisés et un plan minimal sur
+            4 semaines en premium (démo).
           </p>
           <div className="mt-8 flex justify-center">
             <MedicalDisclaimer />

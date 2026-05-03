@@ -14,9 +14,14 @@ export default function ReportPage() {
           Aperçu premium verrouillé — monétisation simulée pour la V1.
         </p>
         <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted">
-          Obtiens tes objectifs personnalisés et ton plan minimal pour les 4
-          prochaines semaines — avec le détail du limiteur et du Performance Gap
-          quand tu passes en offre payante (démo).
+          Débloque ton rapport complet pour comprendre ton{" "}
+          <strong className="text-foreground">Performance Gap</strong> et obtenir
+          ton <strong className="text-foreground">plan minimal sur 4 semaines</strong>{" "}
+          : limiteur détaillé, objectifs et séances structurées (démo).
+        </p>
+        <p className="mt-2 max-w-3xl text-xs leading-relaxed text-muted/90">
+          Le gratuit te montre où tu en es. Le rapport complet te montre quoi
+          faire maintenant.
         </p>
       </div>
 

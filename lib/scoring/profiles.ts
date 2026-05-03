@@ -7,7 +7,7 @@ const PROFILE_COPY: Record<
   moteur_court: {
     label: "Moteur Court",
     description:
-      "Tu excelles sur les efforts intenses courts. Ta machine anaérobie est ton atout — pense à étirer ta capacité sur des durées plus longues.",
+      "Tu es performant sur les efforts intenses et courts. Le prochain enjeu : vérifier ta capacité à tenir plus longtemps sans perdre la qualité.",
   },
   strong_slow: {
     label: "Strong but slow",

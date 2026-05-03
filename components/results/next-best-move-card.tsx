@@ -1,11 +1,20 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import type { NextBestMovePlan } from "@/lib/types";
 
 export function NextBestMoveCard({ plan }: { plan: NextBestMovePlan }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Prochaine meilleure action</CardTitle>
+        <CardTitle className="text-base">Next Best Move</CardTitle>
+        <CardDescription>
+          La prochaine action la plus rentable pour ton limiteur actuel.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         <p className="text-display text-base font-semibold text-amber">

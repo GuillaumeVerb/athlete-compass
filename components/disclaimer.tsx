@@ -1,6 +1,18 @@
 import { cn } from "@/lib/utils";
 
-export function MedicalDisclaimer({ className }: { className?: string }) {
+const DISCLAIMER_FULL =
+  "L'âge athlétique est une estimation de performance. Ce n'est pas une mesure biologique, un avis médical ou un diagnostic de santé.";
+
+const DISCLAIMER_SHORT = "Estimation de performance, pas diagnostic médical.";
+
+export function MedicalDisclaimer({
+  className,
+  compact,
+}: {
+  className?: string;
+  /** Une ligne — hero, cartes denses */
+  compact?: boolean;
+}) {
   return (
     <p
       className={cn(
@@ -8,8 +20,7 @@ export function MedicalDisclaimer({ className }: { className?: string }) {
         className,
       )}
     >
-      L&apos;âge athlétique est une estimation de performance, pas une mesure
-      biologique ni un diagnostic médical.
+      {compact ? DISCLAIMER_SHORT : DISCLAIMER_FULL}
     </p>
   );
 }

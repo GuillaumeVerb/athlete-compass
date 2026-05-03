@@ -52,10 +52,16 @@ export default function PricingPage() {
           Tu ne paies pas pour un chiffre
         </h2>
         <p className="max-w-3xl text-sm leading-relaxed text-muted">
-          Tu paies pour un <strong className="text-foreground">diagnostic</strong>{" "}
-          clair sur ce qui limite ton physique hybride, et un{" "}
-          <strong className="text-foreground">plan minimal</strong> sur les
-          semaines suivantes — pas pour un carnet d&apos;entraînements infini.
+          Tu paies pour savoir quoi faire ensuite : un{" "}
+          <strong className="text-foreground">diagnostic de performance</strong>{" "}
+          sur ce qui limite ton physique hybride, et un{" "}
+          <strong className="text-foreground">plan minimal sur 4 semaines</strong>{" "}
+          — pas pour un carnet d&apos;entraînements infini.
+        </p>
+        <p className="max-w-3xl text-sm leading-relaxed text-muted">
+          Le gratuit te montre où tu en es. Le rapport complet te montre quoi
+          faire maintenant — Performance Gap, limiteur détaillé, objectifs et
+          séances (démo V1).
         </p>
       </section>
 

@@ -21,13 +21,20 @@ export function AthleticAgeCard({
       <p className="relative mt-3 text-sm text-muted">
         Âge réel : {realAge} ans
       </p>
-      <div className="mt-4 relative">
+      <div className="mt-4 relative space-y-2">
         <Badge
           variant={delta === 0 ? "secondary" : "default"}
           className="text-xs"
         >
           {delta === 0 ? "Aligné" : delta < 0 ? `${delta} ans` : `+${delta} ans`}
         </Badge>
+        <p className="text-xs leading-relaxed text-muted">
+          {delta < 0
+            ? "Ton corps performe comme un profil plus jeune sur les qualités mesurées."
+            : delta > 0
+              ? "Sur les qualités mesurées, il reste de la marge pour rapprocher le score de ton âge réel."
+              : "Profil cohérent avec ton âge réel sur les tests renseignés."}
+        </p>
       </div>
     </div>
   );

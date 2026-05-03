@@ -48,11 +48,14 @@ Les règles de profil (`lib/scoring/profiles.ts`) classifient grossièrement le 
 
 Place ton export sous **`public/hero-design.png`**. S’il est absent, un **fallback visuel** s’affiche automatiquement.
 
-## Roadmap (extraits)
+## Roadmap
 
-- **V2** : persistance cloud (Supabase), comptes, historique des tests.
-- **V3** : paiement (Stripe), déblocage réel des rapports / plans.
-- **V4+** : plans adaptatifs, rôles coach, intégrations capteurs / Strava (cf. `doc/`).
+Résumé : **V1** calculateur + diagnostic (local) ; **V2** Stripe + rapport premium ; **V3** historique & retest 30 j ; **V4** plans adaptatifs ; **V5** coach / salle ; **V6** intégrations Strava, Garmin, Apple Health, Concept2, etc.
+
+- Détail par version (objectifs, features, risques, métriques) : [`ROADMAP.md`](ROADMAP.md)
+- Cible Supabase + Stripe sans casser la V1 : [`docs/FUTURE_ARCHITECTURE.md`](docs/FUTURE_ARCHITECTURE.md)
+- Types cloud préparatoires : `lib/future/cloud-types.ts`
+- Variables d’environnement futures : `.env.example` (toutes optionnelles pour la V1)
 
 ## Documentation produit
 

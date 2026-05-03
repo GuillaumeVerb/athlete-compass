@@ -77,7 +77,7 @@ export function LandingHero() {
             </span>
             <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-muted">
               <ShieldCheck className="h-3.5 w-3.5 text-neon" />{" "}
-              Scientifique
+              Tests standardisés
             </span>
             <span className="inline-flex items-center gap-1 rounded-full border border-amber/30 bg-amber/10 px-3 py-1 text-xs font-medium text-amber">
               Actionnable
@@ -105,13 +105,12 @@ export function LandingHero() {
               <Link href="/results">Voir un exemple de résultats</Link>
             </Button>
           </div>
-          <p className="mt-5 max-w-xl text-sm text-muted">
-            Déjà utilisé par des pratiquants HYROX, CrossFit et salle — pour
-            cadrer un bilan court avant d&apos;optimiser l&apos;entraînement
-            (démo V1).
+          <p className="mt-5 max-w-xl text-sm font-medium text-foreground/90">
+            Gratuit. Rapide. Sans montre connectée.
           </p>
-          <p className="mt-6 text-xs text-muted/70">
-            Estimation de performance, pas un diagnostic médical.
+          <p className="mt-3 max-w-xl text-sm text-muted">
+            Démo V1 — bilan court pour cadrer où tu en es avant d&apos;optimiser
+            l&apos;entraînement.
           </p>
         </div>
 

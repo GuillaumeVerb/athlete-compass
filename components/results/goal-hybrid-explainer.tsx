@@ -19,9 +19,10 @@ export function GoalHybridExplainer({ goal }: { goal: PrimaryGoal }) {
       </CardHeader>
       <CardContent className="space-y-3 text-sm text-muted">
         <p className="leading-relaxed">
-          Le score hybride est une <strong className="text-foreground">moyenne pondérée</strong> des piliers que tu as remplis. Les poids
-          changent selon ton objectif : on valorise ce qui compte le plus pour
-          ce type de perf.
+          Le Hybrid Score est une{" "}
+          <strong className="text-foreground">moyenne pondérée</strong> des
+          piliers que tu as remplis. Les poids changent selon ton objectif : on
+          valorise ce qui compte le plus pour ce type de perf.
         </p>
         <ul className="space-y-2">
           {top.map((row) => (

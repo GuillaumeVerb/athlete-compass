@@ -35,9 +35,9 @@ export function HowItWorks() {
           Trois étapes, un fil clair
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-muted">
-          Pas une app fitness de plus : un diagnostic hybride court, avec des
-          tests expliqués et un score qui reflète ton objectif — pas une
-          moyenne générique.
+          Trois étapes courtes — profil, performances mesurables, synthèse
+          actionnable. Pas un carnet d&apos;entraînements : un fil pour décider
+          quoi ajuster ensuite.
         </p>
         <ol className="mt-14 grid gap-8 md:grid-cols-3">
           {steps.map(({ step, title, body, icon: Icon }) => (
