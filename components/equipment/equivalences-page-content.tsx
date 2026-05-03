@@ -23,8 +23,10 @@ export function EquivalencesPageContent() {
   const [lightLegs, setLightLegs] = useState(false);
 
   useEffect(() => {
-    const p = loadProfile();
-    setLightLegs(!!p?.constraints?.includes("light_legs"));
+    queueMicrotask(() => {
+      const p = loadProfile();
+      setLightLegs(!!p?.constraints?.includes("light_legs"));
+    });
   }, []);
 
   return (

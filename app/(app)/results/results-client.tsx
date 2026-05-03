@@ -6,7 +6,12 @@ import type { PerformanceInput, ScoreResult, UserProfile } from "@/lib/types";
 import { computeScoreResult } from "@/lib/scoring";
 import { DEMO_PERFORMANCE, DEMO_PROFILE } from "@/lib/mock-data";
 import { loadPerformance, loadProfile } from "@/lib/storage";
-import { listMissingTestTitles } from "@/lib/scoring/reliability";
+import { listMissingTestTitles, listMissingTestKeys } from "@/lib/scoring/reliability";
+import {
+  reliabilityTierExplanationFr,
+  reliabilityTierFromPct,
+} from "@/lib/scoring/reliability-tier";
+import { filledCount } from "@/lib/scoring/parse";
 import { AthleticAgeCard } from "@/components/results/athletic-age-card";
 import { HybridScoreCard } from "@/components/results/hybrid-score-card";
 import { ResultsRadarChart } from "@/components/results/radar-chart";
@@ -24,6 +29,10 @@ type Payload = {
   result: ScoreResult;
   perf: PerformanceInput;
   profile: UserProfile;
+  /** Nombre de tests renseignés côté utilisateur (hors démo). */
+  userFilledTests: number;
+  /** true si aucune sauvegarde performances en localStorage */
+  performancesAreDemo: boolean;
 };
 
 function SectionKicker({ children }: { children: ReactNode }) {
@@ -55,12 +64,19 @@ export function ResultsClient() {
   const [payload, setPayload] = useState<Payload | null>(null);
 
   useEffect(() => {
-    const profile = loadProfile() ?? DEMO_PROFILE;
-    const perf = loadPerformance() ?? DEMO_PERFORMANCE;
-    setPayload({
-      result: computeScoreResult(profile, perf),
-      perf,
-      profile,
+    queueMicrotask(() => {
+      const profile = loadProfile() ?? DEMO_PROFILE;
+      const savedPerf = loadPerformance();
+      const performancesAreDemo = savedPerf == null;
+      const perf = savedPerf ?? DEMO_PERFORMANCE;
+      const userFilledTests = filledCount(savedPerf ?? {});
+      setPayload({
+        result: computeScoreResult(profile, perf),
+        perf,
+        profile,
+        userFilledTests,
+        performancesAreDemo,
+      });
     });
   }, []);
 
@@ -80,9 +96,17 @@ export function ResultsClient() {
     );
   }
 
-  const { result, perf, profile } = payload;
+  const { result, perf, profile, userFilledTests, performancesAreDemo } = payload;
   const missingTitles = listMissingTestTitles(perf);
+  const missingKeys = listMissingTestKeys(perf);
   const showProvisional = result.reliabilityPct < 100 && missingTitles.length > 0;
+  const tier = reliabilityTierFromPct(result.reliabilityPct);
+  const tierExplain = reliabilityTierExplanationFr(
+    result.reliabilityPct,
+    missingKeys.length,
+  );
+  const showSparseHint =
+    !performancesAreDemo && userFilledTests > 0 && userFilledTests < 3;
 
   return (
     <div className="space-y-12 sm:space-y-14">
@@ -97,10 +121,33 @@ export function ResultsClient() {
             (démo).
           </p>
         </div>
-        <Badge variant="secondary" className="w-fit shrink-0 px-4 py-2 text-sm">
-          Fiabilité du score : {result.reliabilityPct}%
-        </Badge>
+        <div className="flex w-full max-w-md shrink-0 flex-col gap-2 sm:items-end">
+          <Badge variant="secondary" className="w-fit px-4 py-2 text-sm">
+            Fiabilité : {result.reliabilityPct}% ({tier})
+          </Badge>
+          <p className="text-xs leading-relaxed text-muted sm:text-right">
+            {tierExplain}
+          </p>
+        </div>
       </header>
+
+      {showSparseHint ? (
+        <div
+          role="status"
+          className="rounded-2xl border border-border bg-surface/60 p-4 sm:p-5"
+        >
+          <p className="text-sm font-medium text-foreground">
+            Lecture encore limitée
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            Ton score est encore provisoire. Ajoute au moins 3 tests pour obtenir
+            une première lecture utile.
+          </p>
+          <Button asChild variant="outline" className="mt-4 rounded-xl">
+            <Link href="/performances">Compléter mes performances</Link>
+          </Button>
+        </div>
+      ) : null}
 
       {showProvisional ? (
         <div

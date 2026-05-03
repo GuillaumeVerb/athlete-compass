@@ -69,16 +69,18 @@ export function ProfileForm({ initial }: { initial: UserProfile | null }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const p = loadProfile();
-    if (!p) return;
-    setAge(String(p.age));
-    setSex(p.sex);
-    setHeightCm(String(p.heightCm));
-    setWeightKg(String(p.weightKg));
-    setWaistCm(p.waistCm != null ? String(p.waistCm) : "");
-    setGoal(p.goal);
-    setFrequency(p.frequency);
-    setConstraints(p.constraints ?? []);
+    queueMicrotask(() => {
+      const p = loadProfile();
+      if (!p) return;
+      setAge(String(p.age));
+      setSex(p.sex);
+      setHeightCm(String(p.heightCm));
+      setWeightKg(String(p.weightKg));
+      setWaistCm(p.waistCm != null ? String(p.waistCm) : "");
+      setGoal(p.goal);
+      setFrequency(p.frequency);
+      setConstraints(p.constraints ?? []);
+    });
   }, []);
 
   function onSubmit(e: React.FormEvent) {

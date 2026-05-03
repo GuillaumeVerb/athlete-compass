@@ -34,9 +34,9 @@ export function ResultsRadarChart({ breakdown }: { breakdown: ScoreBreakdown }) 
   }));
 
   return (
-    <div className="h-[320px] w-full rounded-2xl border border-border bg-background/60 p-4">
-      <ResponsiveContainer width="100%" height="100%">
-        <RadarChart cx="50%" cy="50%" outerRadius="75%" data={data}>
+    <div className="h-[min(72vw,280px)] min-h-60 w-full max-w-full overflow-hidden rounded-2xl border border-border bg-background/60 p-2 sm:h-80 sm:min-h-0 sm:p-4">
+      <ResponsiveContainer width="100%" height="100%" minHeight={220}>
+        <RadarChart cx="50%" cy="50%" outerRadius="68%" data={data}>
           <PolarGrid stroke="rgba(255,255,255,0.08)" />
           <PolarRadiusAxis
             angle={30}

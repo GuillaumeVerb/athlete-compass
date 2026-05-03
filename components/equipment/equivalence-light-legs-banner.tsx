@@ -8,7 +8,9 @@ export function EquivalenceLightLegsBanner() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    setProfile(loadProfile());
+    queueMicrotask(() => {
+      setProfile(loadProfile());
+    });
   }, []);
 
   const active = profile?.constraints?.includes("light_legs");

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { parseFarmerCarry, parseMmSs } from "@/lib/scoring/parse";
 import {
   Activity,
   Dumbbell,
@@ -114,6 +115,7 @@ export function PerformanceForm({
   initial: PerformanceInput | null;
 }) {
   const router = useRouter();
+  const [formError, setFormError] = useState<string | null>(null);
   const base = useMemo(() => initial ?? DEMO_PERFORMANCE, [initial]);
   const [values, setValues] = useState<Record<string, string>>(() => {
     const o: Record<string, string> = {};
@@ -126,30 +128,64 @@ export function PerformanceForm({
   });
 
   useEffect(() => {
-    const p = loadPerformance();
-    if (!p) return;
-    const next: Record<string, string> = {};
-    for (const f of fields) {
-      const v = p[f.key];
-      next[f.key] =
-        v == null ? "" : typeof v === "number" ? String(v) : (v as string);
-    }
-    setValues((prev) => ({ ...prev, ...next }));
+    queueMicrotask(() => {
+      const p = loadPerformance();
+      if (!p) return;
+      const next: Record<string, string> = {};
+      for (const f of fields) {
+        const v = p[f.key];
+        next[f.key] =
+          v == null ? "" : typeof v === "number" ? String(v) : (v as string);
+      }
+      setValues((prev) => ({ ...prev, ...next }));
+    });
   }, []);
 
   function setField(key: string, val: string) {
+    setFormError(null);
     setValues((s) => ({ ...s, [key]: val }));
   }
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setFormError(null);
     const out: PerformanceInput = {};
     for (const f of fields) {
       const raw = values[f.key]?.trim();
       if (!raw) continue;
-      if (f.type === "number") {
+      if (f.type === "time") {
+        const sec = parseMmSs(raw);
+        if (sec == null) {
+          setFormError(
+            `Format temps invalide pour « ${f.title} » : utilise mm:ss (ex. 03:32).`,
+          );
+          return;
+        }
+        (out as Record<string, string>)[f.key] = raw;
+      } else if (f.type === "text" && f.key === "farmerCarry") {
+        const fc = parseFarmerCarry(raw);
+        if (!fc || fc.meters <= 0 || fc.seconds < 0) {
+          setFormError(
+            `Farmer carry : format attendu 40/35 (mètres / secondes) ou 40 m 35 s.`,
+          );
+          return;
+        }
+        (out as Record<string, string>)[f.key] = raw;
+      } else if (f.type === "number") {
         const n = Number(raw.replace(",", "."));
-        if (Number.isFinite(n)) (out as Record<string, number>)[f.key] = n;
+        if (!Number.isFinite(n)) {
+          setFormError(`Nombre invalide pour « ${f.title} ».`);
+          return;
+        }
+        if (f.key === "pullups" && (n < 0 || !Number.isInteger(n))) {
+          setFormError(`Tractions : entre un entier ≥ 0.`);
+          return;
+        }
+        if (f.key !== "pullups" && n <= 0) {
+          setFormError(`« ${f.title} » : entre un poids strictement positif (kg).`);
+          return;
+        }
+        (out as Record<string, number>)[f.key] = n;
       } else {
         (out as Record<string, string>)[f.key] = raw;
       }
@@ -203,6 +239,11 @@ export function PerformanceForm({
         Tu peux laisser des champs vides : nous calculons un score provisoire et
         un pourcentage de fiabilité.
       </p>
+      {formError ? (
+        <p className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {formError}
+        </p>
+      ) : null}
       <div className="flex flex-wrap gap-4 justify-end">
         <Button type="submit" size="lg" className="rounded-2xl px-10">
           Voir mes résultats

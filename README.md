@@ -12,6 +12,22 @@ npm run lint
 npm run build
 ```
 
+## QA (V1)
+
+Avant merge ou release, exécuter dans l’ordre :
+
+1. `npm run typecheck` — TypeScript strict, pas d’erreur.
+2. `npm run lint` — ESLint (Next.js) propre.
+3. `npm run build` — build production Next.js OK.
+
+**Formulaires** : les temps attendent `mm:ss` ; le farmer carry `40/35` ou `40 m 35 s` ; les charges en kg strictement positives ; les tractions en entier ≥ 0. Messages d’erreur explicites si un champ renseigné est invalide.
+
+**États vides** : profil / performances absents → démo ou CTA guidé ; résultats avec peu de tests → bandeau « score provisoire » et palier de fiabilité (`lib/scoring/reliability-tier.ts`).
+
+**UI** : vérifier les vues étroites (320–390 px) : sidebar repliée, graphique radar lisible, onglets du plan (S1–S4) utilisables au doigt.
+
+**Accessibilité (minimum)** : libellés associés aux champs (`Label` / `sr-only` où besoin), contrastes des badges, focus visible sur les boutons shadcn.
+
 ## Scoring (V1)
 
 Le calcul est **déterministe** et volontairement simple (modifiable dans `lib/scoring/`).
