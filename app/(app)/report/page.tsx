@@ -5,7 +5,7 @@ import { PricingCard } from "@/components/pricing/pricing-card";
 import { ReportUnlockedBody } from "@/components/report/report-unlocked-body";
 import { MedicalDisclaimer } from "@/components/disclaimer";
 import { fetchPremiumReportMeta } from "@/lib/purchase/fetch-premium-report-meta";
-import { fetchPurchaseReportSnapshot } from "@/lib/purchase/fetch-purchase-snapshot";
+import { fetchUnlockReportSnapshot } from "@/lib/purchase/fetch-unlock-report-snapshot";
 import { productKeyLabelFr } from "@/lib/purchase/product-key-label";
 import {
   REPORT_UNLOCK_COOKIE,
@@ -19,7 +19,7 @@ export default async function ReportPage() {
 
   const [serverSnapshot, premiumMeta] = unlock
     ? await Promise.all([
-        fetchPurchaseReportSnapshot(unlock.sessionId),
+        fetchUnlockReportSnapshot(unlock.sessionId),
         fetchPremiumReportMeta(unlock.sessionId),
       ])
     : [null, null];
@@ -40,12 +40,34 @@ export default async function ReportPage() {
             {serverSnapshot
               ? "bilan figé au moment du paiement (serveur)."
               : "synthèse recalculée sur cet appareil (localStorage)."}
-            {" "}
-            PDF, exports et historique cloud arrivent en V2 — aperçu gratuit sur{" "}
-            <Link href="/results" className="text-neon underline">
-              Résultats
-            </Link>
-            .
+            {serverSnapshot ? (
+              <>
+                <span className="mt-2 block">
+                  <a
+                    href="/api/report/pdf"
+                    className="font-medium text-neon underline"
+                  >
+                    Télécharger un PDF (aperçu)
+                  </a>{" "}
+                  — extrait du bilan serveur (informatif, pas un document médical).
+                </span>
+                <span className="mt-1 block text-xs text-muted">
+                  Historique cloud et export étendu — V2+. Aperçu gratuit sur{" "}
+                  <Link href="/results" className="text-neon underline">
+                    Résultats
+                  </Link>
+                  .
+                </span>
+              </>
+            ) : (
+              <span className="mt-1 block text-xs text-muted">
+                PDF complet et historique cloud — V2+. Aperçu gratuit sur{" "}
+                <Link href="/results" className="text-neon underline">
+                  Résultats
+                </Link>
+                .
+              </span>
+            )}
             {premiumMeta ? (
               <span className="mt-2 block text-xs text-foreground/85">
                 Rapport premium{" "}

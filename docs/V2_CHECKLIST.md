@@ -35,7 +35,7 @@ Guide technique pas à pas : **[`V2_SETUP.md`](V2_SETUP.md)**.
 ### Pas bloquant pour « payer + voir le rapport » une fois Stripe OK
 
 - **RLS** avancée — service role serveur pour l’instant.
-- **Rapport PDF / `pdf_url`** — colonne prête ; génération fichier à venir.
+- **Rapport PDF** — aperçu **`GET /api/report/pdf`** ; persistance **`pdf_url`** + Storage — à venir.
 - **`user_id`** / compte / portail client Stripe — évolutions produit.
 
 ### Qualité / confiance
@@ -48,7 +48,7 @@ Guide technique pas à pas : **[`V2_SETUP.md`](V2_SETUP.md)**.
 
 1. **Migration `003`** déjà appliquée sur ton instance ? sinon `db push` ou SQL Editor.
 2. **Stripe + Resend + prod** : suivre **`V2_A_FAIRE.md`**.
-3. **PDF** : génération + `pdf_url` + lien UI `/report`.
+3. **PDF** : route **`GET /api/report/pdf`** (aperçu `pdf-lib`, cookie requis) ; stockage **`pdf_url`** + bucket Supabase — à faire.
 4. **Auth** (magic link) + `user_id` sur achats / rapports.
 
 ---

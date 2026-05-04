@@ -79,7 +79,7 @@ Aucun composant V1 ne dépend du client navigateur Supabase pour l’instant.
 | `lib/supabase/*.ts` | Clients Supabase optionnels |
 | `app/api/health/cloud/route.ts` | Santé intégrations (+ Resend optionnel) |
 | `app/api/checkout/route.ts` | Session Checkout |
-| `app/api/purchase/complete/route.ts` | Après paiement Stripe : vérifie la session, upsert `purchases`, cookie httpOnly, redirect `/report` |
+| `GET /api/report/pdf` | PDF aperçu (cookie déblocage + bilan serveur) |
 | `lib/purchase/*` | Ligne d’insert Stripe → SQL, cookie signé |
 | `docs/supabase/migrations/001_purchases.sql` | Table `purchases` minimale (SQL Editor) |
 | `docs/supabase/migrations/002_report_snapshot.sql` | Snapshot bilan (SQL Editor) |
