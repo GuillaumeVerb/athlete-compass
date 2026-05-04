@@ -1,5 +1,7 @@
 # Mise en route V2 — Stripe & Supabase (local)
 
+**Checklist synthétique (mémo)** : [`docs/V2_CHECKLIST.md`](V2_CHECKLIST.md) — ce qu’il reste surtout côté **Stripe**, déploiement, et ce qui est volontairement plus tard.
+
 La V1 tourne **sans** ces étapes. Utilise ce guide quand tu veux activer les routes API optionnelles.
 
 ## Vérifier l’état des intégrations
