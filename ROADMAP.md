@@ -108,6 +108,7 @@ Vision : un **diagnostic de performance hybride** court (âge athlétique, Hybri
 
 ## Liens utiles
 
+- **À faire (config)** : [`docs/V2_A_FAIRE.md`](docs/V2_A_FAIRE.md) — Stripe, Resend, déploiement.
 - Architecture cible V2+ : [`docs/FUTURE_ARCHITECTURE.md`](docs/FUTURE_ARCHITECTURE.md)
 - Types cloud préparatoires : `lib/future/cloud-types.ts`
 - Prompts d’exécution historiques : dossier `doc/`

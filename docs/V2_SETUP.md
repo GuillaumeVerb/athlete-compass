@@ -1,6 +1,6 @@
 # Mise en route V2 — Stripe & Supabase (local)
 
-**Checklist synthétique (mémo)** : [`docs/V2_CHECKLIST.md`](V2_CHECKLIST.md) — ce qu’il reste surtout côté **Stripe**, déploiement, et ce qui est volontairement plus tard.
+**À faire (Stripe, Resend, déploiement)** : [`docs/V2_A_FAIRE.md`](V2_A_FAIRE.md). **Mémo intégrations** : [`docs/V2_CHECKLIST.md`](V2_CHECKLIST.md).
 
 La V1 tourne **sans** ces étapes. Utilise ce guide quand tu veux activer les routes API optionnelles.
 
@@ -30,17 +30,11 @@ Copie `.env.example` vers `.env.local` et renseigne au besoin. Rien n’est **ob
 
 ### Stripe (Checkout test)
 
-1. [Dashboard Stripe](https://dashboard.stripe.com/) → mode test.
-2. Crée **trois prix** (Payment, récurrent ou one-shot au choix ; le code utilise `mode: "payment"` avec un prix one-time conseillé).
-3. Récupère les **Price IDs** (`price_...`).
-4. Renseigne dans `.env.local` :
+**Liste à cocher (variables, webhooks, prod)** : **[`V2_A_FAIRE.md`](V2_A_FAIRE.md)**.
 
-- `STRIPE_SECRET_KEY` (`sk_test_...`)
-- `STRIPE_PRICE_BILAN_9`, `STRIPE_PRICE_PLAN_19`, `STRIPE_PRICE_PACK_29`
-- `STRIPE_WEBHOOK_SECRET` (après écoute du webhook, voir ci-dessous)
-- `NEXT_PUBLIC_APP_URL=http://localhost:3000` (ou URL Vercel en prod)
+Variables attendues : `STRIPE_SECRET_KEY`, les trois `STRIPE_PRICE_*`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_APP_URL` — détail et ordre dans ce fichier.
 
-### Tester le Checkout (API)
+**Tester le Checkout (API)** une fois les clés + prix renseignés :
 
 ```bash
 curl -s -X POST http://localhost:3000/api/checkout \
@@ -48,17 +42,11 @@ curl -s -X POST http://localhost:3000/api/checkout \
   -d '{"productKey":"bilan_9"}' | jq
 ```
 
-Si tout est bon, tu reçois `{ "url": "https://checkout.stripe.com/...", "sessionId": "cs_..." }`.
+Réponse attendue : `{ "url": "https://checkout.stripe.com/...", "sessionId": "cs_..." }`.
 
-### Webhook local
+**Webhook local** : `stripe listen --forward-to localhost:PORT/api/webhooks/stripe` (adapter `PORT`), puis coller le `whsec_...` dans `STRIPE_WEBHOOK_SECRET` et redémarrer Next.
 
-```bash
-stripe listen --forward-to localhost:3000/api/webhooks/stripe
-```
-
-Copie le **signing secret** (`whsec_...`) dans `STRIPE_WEBHOOK_SECRET`, redémarre `npm run dev`, puis déclenche un paiement test depuis l’URL Checkout.
-
-> La route webhook répond **503** si le secret n’est pas défini : c’est normal en V1.
+> La route webhook répond **503** si le secret n’est pas défini.
 
 ### Supabase (persistance `purchases`)
 
@@ -74,14 +62,7 @@ Sans cette table, le **webhook** et la route **`/api/purchase/complete`** journa
 
 ### Email post-achat (Resend, optionnel)
 
-1. Compte [Resend](https://resend.com/) → clé API.
-2. En dev, expéditeur possible : `onboarding@resend.dev` ; en prod, domaine vérifié.
-3. Dans `.env` / `.env.local` :
-
-- `RESEND_API_KEY`
-- `RESEND_FROM_EMAIL` (ex. `Athlete Compass <onboarding@resend.dev>` ou adresse domaine vérifié)
-
-Après paiement, l’app envoie un email de confirmation (webhook **et** page `purchase/complete` peuvent déclencher l’envoi ; **Idempotency-Key** Resend = `purchase-confirm-{session_id}` pour éviter les doublons). Sans variables, rien n’est envoyé.
+**Checklist** : **[`V2_A_FAIRE.md`](V2_A_FAIRE.md)** (section Resend). Variables : `RESEND_API_KEY`, `RESEND_FROM_EMAIL`. Sans elles, aucun envoi (comportement normal). Idempotence Resend : `purchase-confirm-{session_id}`.
 
 ### Cookie rapport
 

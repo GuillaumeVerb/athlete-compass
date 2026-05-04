@@ -153,7 +153,7 @@ Sans variables d’environnement, elles répondent **503** ou métadonnées neut
 | `POST /api/checkout` | Crée une Stripe Checkout Session si les Price IDs sont définis. |
 | `POST /api/webhooks/stripe` | Vérifie la signature ; hook `checkout.session.completed` (persistance à brancher). |
 
-Guide pas à pas : **[`docs/V2_SETUP.md`](V2_SETUP.md)**.
+Guide pas à pas : **[`docs/V2_SETUP.md`](V2_SETUP.md)** — tâches dashboard (Stripe, Resend, déploiement) : **[`docs/V2_A_FAIRE.md`](V2_A_FAIRE.md)**.
 
 ---
 
