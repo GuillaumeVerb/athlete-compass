@@ -6,12 +6,13 @@ import Link from "next/link";
 import type { PerformanceInput } from "@/lib/types";
 import { DEMO_PERFORMANCE } from "@/lib/mock-data";
 import { loadPerformance, savePerformance } from "@/lib/storage";
+import { buildPerformanceInputFromForm } from "@/lib/performance/build-performance-input-from-form";
+import { PERFORMANCE_FORM_FIELDS } from "@/lib/performance/performance-form-fields";
 import { TestProtocolMini } from "@/components/tests/test-protocol-mini";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { parseFarmerCarry, parseMmSs } from "@/lib/scoring/parse";
 import {
   Activity,
   Dumbbell,
@@ -23,91 +24,26 @@ import {
   Weight,
 } from "lucide-react";
 
-const fields: {
-  key: keyof PerformanceInput;
-  title: string;
-  unit: string;
-  placeholder?: string;
-  icon: typeof Activity;
-  type: "time" | "number" | "text";
-}[] = [
-  {
-    key: "row1k",
-    title: "1 km rameur",
-    unit: "mm:ss",
-    placeholder: "03:32",
-    icon: Activity,
-    type: "time",
-  },
-  {
-    key: "row2k",
-    title: "2 km rameur",
-    unit: "mm:ss",
-    placeholder: "07:15",
-    icon: Waves,
-    type: "time",
-  },
-  {
-    key: "run5k",
-    title: "5 km course",
-    unit: "mm:ss",
-    placeholder: "24:20",
-    icon: Footprints,
-    type: "time",
-  },
-  {
-    key: "pullups",
-    title: "Tractions strictes",
-    unit: "reps",
-    icon: Grip,
-    type: "number",
-  },
-  {
-    key: "frontSquat5",
-    title: "Front squat ×5",
-    unit: "kg",
-    icon: Weight,
-    type: "number",
-  },
-  {
-    key: "ohp5",
-    title: "Développé militaire ×5",
-    unit: "kg",
-    icon: Dumbbell,
-    type: "number",
-  },
-  {
-    key: "deadlift5",
-    title: "Deadlift ×5",
-    unit: "kg",
-    icon: Weight,
-    type: "number",
-  },
-  {
-    key: "burpees50",
-    title: "50 burpees",
-    unit: "mm:ss",
-    placeholder: "08:45",
-    icon: HeartPulse,
-    type: "time",
-  },
-  {
-    key: "farmerCarry",
-    title: "Farmer carry",
-    unit: "m / s",
-    placeholder: "40/35",
-    icon: Grip,
-    type: "text",
-  },
-  {
-    key: "hollowHold",
-    title: "Hollow hold",
-    unit: "mm:ss",
-    placeholder: "01:20",
-    icon: Timer,
-    type: "time",
-  },
-];
+const ICON_BY_KEY: Record<
+  keyof PerformanceInput,
+  typeof Activity
+> = {
+  row1k: Activity,
+  row2k: Waves,
+  run5k: Footprints,
+  pullups: Grip,
+  frontSquat5: Weight,
+  ohp5: Dumbbell,
+  deadlift5: Weight,
+  burpees50: HeartPulse,
+  farmerCarry: Grip,
+  hollowHold: Timer,
+};
+
+const fields = PERFORMANCE_FORM_FIELDS.map((f) => ({
+  ...f,
+  icon: ICON_BY_KEY[f.key],
+}));
 
 export function PerformanceForm({
   initial,
@@ -149,48 +85,12 @@ export function PerformanceForm({
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setFormError(null);
-    const out: PerformanceInput = {};
-    for (const f of fields) {
-      const raw = values[f.key]?.trim();
-      if (!raw) continue;
-      if (f.type === "time") {
-        const sec = parseMmSs(raw);
-        if (sec == null) {
-          setFormError(
-            `Format temps invalide pour « ${f.title} » : utilise mm:ss (ex. 03:32).`,
-          );
-          return;
-        }
-        (out as Record<string, string>)[f.key] = raw;
-      } else if (f.type === "text" && f.key === "farmerCarry") {
-        const fc = parseFarmerCarry(raw);
-        if (!fc || fc.meters <= 0 || fc.seconds < 0) {
-          setFormError(
-            `Farmer carry : format attendu 40/35 (mètres / secondes) ou 40 m 35 s.`,
-          );
-          return;
-        }
-        (out as Record<string, string>)[f.key] = raw;
-      } else if (f.type === "number") {
-        const n = Number(raw.replace(",", "."));
-        if (!Number.isFinite(n)) {
-          setFormError(`Nombre invalide pour « ${f.title} ».`);
-          return;
-        }
-        if (f.key === "pullups" && (n < 0 || !Number.isInteger(n))) {
-          setFormError(`Tractions : entre un entier ≥ 0.`);
-          return;
-        }
-        if (f.key !== "pullups" && n <= 0) {
-          setFormError(`« ${f.title} » : entre un poids strictement positif (kg).`);
-          return;
-        }
-        (out as Record<string, number>)[f.key] = n;
-      } else {
-        (out as Record<string, string>)[f.key] = raw;
-      }
+    const built = buildPerformanceInputFromForm(values);
+    if (!built.ok) {
+      setFormError(built.error);
+      return;
     }
-    savePerformance(out);
+    savePerformance(built.data);
     router.push("/results");
   }
 

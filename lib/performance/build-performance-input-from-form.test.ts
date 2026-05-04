@@ -1,0 +1,34 @@
+import { describe, expect, it } from "vitest";
+import { buildPerformanceInputFromForm } from "./build-performance-input-from-form";
+
+describe("buildPerformanceInputFromForm (onglet Perf)", () => {
+  it("accepte un 1 km valide seul", () => {
+    const r = buildPerformanceInputFromForm({ row1k: "03:32" });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.data).toEqual({ row1k: "03:32" });
+  });
+
+  it("refuse un temps invalide", () => {
+    const r = buildPerformanceInputFromForm({ row1k: "3:99" });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toContain("1 km rameur");
+  });
+
+  it("refuse des tractions non entières", () => {
+    const r = buildPerformanceInputFromForm({ pullups: "10.5" });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toContain("Tractions");
+  });
+
+  it("refuse un poids ≤ 0 hors tractions", () => {
+    const r = buildPerformanceInputFromForm({ frontSquat5: "0" });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toContain("Front squat");
+  });
+
+  it("accepte farmer carry au format slash", () => {
+    const r = buildPerformanceInputFromForm({ farmerCarry: "40/35" });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.data.farmerCarry).toBe("40/35");
+  });
+});
