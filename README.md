@@ -9,6 +9,7 @@ npm install
 npm run dev
 npm run typecheck
 npm run lint
+npm run test
 npm run build
 ```
 
@@ -18,7 +19,8 @@ Avant merge ou release, exécuter dans l’ordre :
 
 1. `npm run typecheck` — TypeScript strict, pas d’erreur.
 2. `npm run lint` — ESLint (Next.js) propre.
-3. `npm run build` — build production Next.js OK.
+3. `npm run test` — Vitest (parsing perfs + smoke scoring démo).
+4. `npm run build` — build production Next.js OK.
 
 **Formulaires** : les temps attendent `mm:ss` ; le farmer carry `40/35` ou `40 m 35 s` ; les charges en kg strictement positives ; les tractions en entier ≥ 0. Messages d’erreur explicites si un champ renseigné est invalide.
 
