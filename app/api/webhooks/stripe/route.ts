@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 
 /**
  * Webhook Stripe — nécessite `STRIPE_WEBHOOK_SECRET` + `STRIPE_SECRET_KEY`.
- * V2 : persister `purchases` / `premium_reports` via `createAdminSupabase()`.
+ * V2 : persister `purchases` + `premium_reports` via `createAdminSupabase()`.
  */
 export async function POST(req: Request) {
   const stripe = getStripe();

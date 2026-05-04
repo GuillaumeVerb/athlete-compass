@@ -52,7 +52,7 @@ Objectif : `stripeSecret: true` et `stripeCheckout: true`.
 
 ### Déjà couvert si tu as suivi la doc
 
-- Migrations **`001` / `002`** (ou `supabase db push`) : tables + `report_snapshot` / `checkout_snapshots`.
+- Migrations **`001` / `002` / `003`** (ou `supabase db push`) : `purchases`, snapshot checkout, **`premium_reports`**.
 - Variables Supabase dans `.env` / hébergeur.
 
 ### À ne pas oublier au moment du déploiement
@@ -63,12 +63,22 @@ Objectif : `stripeSecret: true` et `stripeCheckout: true`.
 ### Pas dans le code V1 / couche actuelle (pas bloquant pour « payer + voir le rapport »)
 
 - **RLS** Supabase sur `purchases` / tables futures — aujourd’hui l’app passe par le **service role** côté serveur ; durcir quand il y aura auth utilisateur + accès client direct.
-- **Rapport PDF / `premium_reports` / historique cloud** — mentionnés dans l’UI comme V2+ ; schéma cible dans **`FUTURE_ARCHITECTURE.md`**.
+- **Rapport PDF / génération fichier** — `premium_reports.pdf_url` et job d’export ; la ligne **`premium_reports`** avec **`report_json`** est déjà synchronisée côté serveur après paiement si un snapshot checkout existe.
 - **Lier un `user_id`** aux achats, compte utilisateur, portail client Stripe — évolutions produit.
 
 ### Qualité / confiance
 
-- Faire **un paiement test** bout en bout : Checkout → redirect → `/report` → vérifier une ligne dans **`purchases`** (et **`report_snapshot`** si snapshot envoyé au checkout avec Supabase admin OK).
+- Faire **un paiement test** bout en bout : Checkout → redirect → `/report` → vérifier une ligne dans **`purchases`** et **`premium_reports`** (et **`report_snapshot`** si snapshot envoyé au checkout avec Supabase admin OK).
+
+---
+
+## Prochaines briques V2 (ordre suggéré)
+
+1. **Appliquer la migration `003_premium_reports.sql`** sur ton projet Supabase (`db push` ou SQL Editor) — sans ça, l’upsert `premium_reports` log une erreur (l’achat `purchases` reste OK).
+2. **Stripe** : clés + webhooks + paiement test (voir section Stripe ci-dessus).
+3. **Email de confirmation** après `checkout.session.completed` (ex. Resend / SendGrid) — pas encore dans le code.
+4. **PDF** : génération async + `pdf_url` (Supabase Storage ou S3) + lien dans l’UI `/report`.
+5. **Auth** légère (magic link) et `user_id` sur `purchases` / `premium_reports` quand le modèle utilisateur sera posé.
 
 ---
 

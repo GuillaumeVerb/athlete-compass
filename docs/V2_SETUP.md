@@ -63,7 +63,7 @@ Copie le **signing secret** (`whsec_...`) dans `STRIPE_WEBHOOK_SECRET`, redémar
 
 1. Crée un projet sur [Supabase](https://supabase.com/) et récupère l’URL + clés.
 2. Applique le schéma (au choix) :
-   - **SQL Editor** : colle **`docs/supabase/migrations/001_purchases.sql`** puis **`002_report_snapshot.sql`** ;
+   - **SQL Editor** : colle **`docs/supabase/migrations/001_purchases.sql`**, puis **`002_report_snapshot.sql`**, puis **`003_premium_reports.sql`** ;
    - **CLI** (depuis la racine **`athlete_compass`**, pas un dossier parent) : une fois `supabase link` fait avec ton *project ref*, `supabase db push` applique les fichiers dans **`supabase/migrations/`** (miroir du même SQL).
 3. Renseigne `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` dans `.env` ou `.env.local`.
 
@@ -90,6 +90,8 @@ Aucun composant V1 ne dépend du client navigateur Supabase pour l’instant.
 | `lib/purchase/*` | Ligne d’insert Stripe → SQL, cookie signé |
 | `docs/supabase/migrations/001_purchases.sql` | Table `purchases` minimale (SQL Editor) |
 | `docs/supabase/migrations/002_report_snapshot.sql` | Snapshot bilan (SQL Editor) |
+| `docs/supabase/migrations/003_premium_reports.sql` | Table `premium_reports` (JSON rapport, `pdf_url` futur) |
+| `lib/purchase/upsert-premium-report.ts` | Sync `premium_reports` après achat si snapshot |
 | `supabase/config.toml` | Config locale générée par `supabase init` |
 | `supabase/migrations/*.sql` | Mêmes migrations pour `supabase db push` |
 | `components/checkout/checkout-context.tsx` | Provider : état Stripe pour toute la zone `(app)` |

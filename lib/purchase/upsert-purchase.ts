@@ -3,6 +3,7 @@ import { createAdminSupabase } from "@/lib/supabase/admin-client";
 import { takePendingCheckoutSnapshot } from "@/lib/purchase/checkout-snapshot-db";
 import { purchaseInsertFromSession } from "@/lib/purchase/purchase-insert";
 import type { ReportSnapshotV1 } from "@/lib/purchase/report-snapshot-types";
+import { upsertPremiumReportFromPurchase } from "@/lib/purchase/upsert-premium-report";
 
 type PurchaseRow = ReturnType<typeof purchaseInsertFromSession> & {
   report_snapshot?: ReportSnapshotV1;
@@ -47,5 +48,17 @@ export async function upsertPurchaseRow(
     console.error("[purchases upsert]", error.message);
     return { ok: false, skippedNoDb: false, error: error.message };
   }
+
+  if (reportSnapshot) {
+    const pr = await upsertPremiumReportFromPurchase(
+      base.stripe_checkout_session_id,
+      base.product_key,
+      reportSnapshot,
+    );
+    if (!pr.ok) {
+      console.error("[premium_reports upsert after purchase]", pr.error);
+    }
+  }
+
   return { ok: true, skippedNoDb: false };
 }

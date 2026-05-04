@@ -96,7 +96,7 @@ Si on veut une ligne par test plutôt qu’un JSON unique :
 | `report_snapshot` | `jsonb` nullable | Bilan figé au checkout (profil + perfs + score recalculé serveur) |
 | `created_at` | `timestamptz` | |
 
-Script SQL minimal versionné : **`docs/supabase/migrations/001_purchases.sql`**, puis **`002_report_snapshot.sql`** (`report_snapshot` + table temporaire `checkout_snapshots` liée par `snapshot_id` en metadata Stripe jusqu’au webhook).
+Script SQL minimal versionné : **`docs/supabase/migrations/001_purchases.sql`**, puis **`002_report_snapshot.sql`**, puis **`003_premium_reports.sql`** (`premium_reports` + RLS activé sans policy publique — accès serveur service role).
 
 ---
 
@@ -107,7 +107,7 @@ Script SQL minimal versionné : **`docs/supabase/migrations/001_purchases.sql`**
 3. Clic « Débloquer mon rapport » → **Stripe Checkout Session** créée côté serveur ; le client peut envoyer **`snapshot`** `{ profile, performance }` → serveur recalcule le score, stocke un pending row, passe **`snapshot_id`** en metadata session.
 4. Après paiement, Stripe redirige vers **`GET /api/purchase/complete?session_id=…`** (vérif serveur + upsert `purchases` + cookie httpOnly `ac_report_unlock`).
 5. Redirection vers **`/report`** : bannière « accès activé » si cookie valide.
-6. Le rapport détaillé (JSON / PDF) reste à brancher dans `premium_reports` (V2+).
+6. L’UI lit le statut et affiche le rapport débloqué ; une ligne **`premium_reports`** (JSON + `pdf_url` futur) est synchronisée avec le snapshot quand il existe (`lib/purchase/upsert-premium-report.ts`).
 
 ---
 
@@ -117,7 +117,7 @@ Script SQL minimal versionné : **`docs/supabase/migrations/001_purchases.sql`**
 2. Utilisateur paie sur Stripe Hosted Checkout.
 3. **Webhook** `checkout.session.completed` (et `payment_intent.succeeded` si besoin) :
    - Vérifier la signature (`STRIPE_WEBHOOK_SECRET`).
-   - Insérer / mettre à jour `purchases` (idempotent sur `session.id`).
+   - Insérer / mettre à jour `purchases` (idempotent sur `session.id`) puis **`premium_reports`** si un `report_snapshot` est disponible.
    - Déclencher génération `premium_reports` (job async ou fonction immédiate selon charge).
 4. L’UI lit le statut et affiche le rapport débloqué.
 

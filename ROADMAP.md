@@ -37,7 +37,7 @@ Vision : un **diagnostic de performance hybride** court (âge athlétique, Hybri
 | **Objectif produit** | Valider que des utilisateurs **paient** pour le rapport complet + plan détaillé. |
 | **Features** | Stripe Checkout ; déblocage rapport (page privée et/ou PDF) ; offres alignées 9 / 19 / 29 € ; webhook paiement → statut `purchase` ; email de confirmation ; accès sans mot de passe lourd (magic link ou session signée). |
 | **Écrans** | Checkout Stripe (hébergé) ; succès / annulation ; rapport débloqué ; historique minimal “dernier achat”. |
-| **Données** | Compte léger ou identifiant post-achat ; `purchases` ; `premium_reports` ; lien `assessment` ↔ `purchase` (voir `docs/FUTURE_ARCHITECTURE.md`). |
+| **Données** | Compte léger ou identifiant post-achat ; `purchases` + `report_snapshot` ; **`premium_reports`** (JSON, PDF à venir) ; lien `assessment` ↔ `purchase` (voir `docs/FUTURE_ARCHITECTURE.md`). |
 | **Complexité technique** | Moyenne — webhooks idempotents, secrets, gestion des états d’échec partiel. |
 | **Risques** | Fraude / litiges CB ; RGPD email ; rapport généré différent de l’aperçu gratuit (attentes). |
 | **Critères de succès** | Premier paiement réel ; taux de conversion pricing → checkout > objectif interne. |
