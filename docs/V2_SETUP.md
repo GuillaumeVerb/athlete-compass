@@ -19,7 +19,8 @@ Réponse typique sans configuration :
   "supabaseBrowser": false,
   "supabaseAdmin": false,
   "stripeSecret": false,
-  "stripeCheckout": false
+  "stripeCheckout": false,
+  "resendEmail": false
 }
 ```
 
@@ -71,6 +72,17 @@ Copie le **signing secret** (`whsec_...`) dans `STRIPE_WEBHOOK_SECRET`, redémar
 
 Sans cette table, le **webhook** et la route **`/api/purchase/complete`** journalisent une erreur côté serveur mais le paiement reste valide côté Stripe ; le **cookie de déblocage** `/report` fonctionne dès que `STRIPE_SECRET_KEY` (ou `PURCHASE_SIGNING_SECRET`) est défini.
 
+### Email post-achat (Resend, optionnel)
+
+1. Compte [Resend](https://resend.com/) → clé API.
+2. En dev, expéditeur possible : `onboarding@resend.dev` ; en prod, domaine vérifié.
+3. Dans `.env` / `.env.local` :
+
+- `RESEND_API_KEY`
+- `RESEND_FROM_EMAIL` (ex. `Athlete Compass <onboarding@resend.dev>` ou adresse domaine vérifié)
+
+Après paiement, l’app envoie un email de confirmation (webhook **et** page `purchase/complete` peuvent déclencher l’envoi ; **Idempotency-Key** Resend = `purchase-confirm-{session_id}` pour éviter les doublons). Sans variables, rien n’est envoyé.
+
 ### Cookie rapport
 
 - Optionnel : `PURCHASE_SIGNING_SECRET` — sinon la signature du cookie réutilise `STRIPE_SECRET_KEY` (serveur uniquement, jamais exposée au client).
@@ -84,13 +96,14 @@ Aucun composant V1 ne dépend du client navigateur Supabase pour l’instant.
 | `lib/env/cloud-ready.ts` | Détection config |
 | `lib/stripe/server.ts` | Client Stripe lazy |
 | `lib/supabase/*.ts` | Clients Supabase optionnels |
-| `app/api/health/cloud/route.ts` | Santé intégrations |
+| `app/api/health/cloud/route.ts` | Santé intégrations (+ Resend optionnel) |
 | `app/api/checkout/route.ts` | Session Checkout |
 | `app/api/purchase/complete/route.ts` | Après paiement Stripe : vérifie la session, upsert `purchases`, cookie httpOnly, redirect `/report` |
 | `lib/purchase/*` | Ligne d’insert Stripe → SQL, cookie signé |
 | `docs/supabase/migrations/001_purchases.sql` | Table `purchases` minimale (SQL Editor) |
 | `docs/supabase/migrations/002_report_snapshot.sql` | Snapshot bilan (SQL Editor) |
 | `docs/supabase/migrations/003_premium_reports.sql` | Table `premium_reports` (JSON rapport, `pdf_url` futur) |
+| `lib/email/send-purchase-confirmation.ts` | Email Resend post-achat (optionnel) |
 | `lib/purchase/upsert-premium-report.ts` | Sync `premium_reports` après achat si snapshot |
 | `supabase/config.toml` | Config locale générée par `supabase init` |
 | `supabase/migrations/*.sql` | Mêmes migrations pour `supabase db push` |

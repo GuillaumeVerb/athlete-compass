@@ -1,4 +1,5 @@
 import {
+  isResendEmailConfigured,
   isStripeCheckoutConfigured,
   isStripeSecretConfigured,
   isSupabaseAdminConfigured,
@@ -12,5 +13,6 @@ export async function GET() {
     supabaseAdmin: isSupabaseAdminConfigured(),
     stripeSecret: isStripeSecretConfigured(),
     stripeCheckout: isStripeCheckoutConfigured(),
+    resendEmail: isResendEmailConfigured(),
   });
 }

@@ -1,4 +1,6 @@
 import Stripe from "stripe";
+import { sendPurchaseConfirmationEmail } from "@/lib/email/send-purchase-confirmation";
+import { purchaseInsertFromSession } from "@/lib/purchase/purchase-insert";
 import { upsertPurchaseRow } from "@/lib/purchase/upsert-purchase";
 import { getStripe } from "@/lib/stripe/server";
 
@@ -40,6 +42,16 @@ export async function POST(req: Request) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
       await upsertPurchaseRow(session);
+      const row = purchaseInsertFromSession(session);
+      if (row) {
+        const to =
+          session.customer_details?.email ?? session.customer_email ?? null;
+        void sendPurchaseConfirmationEmail({
+          to,
+          sessionId: session.id,
+          productKey: row.product_key,
+        }).catch((err) => console.error("[purchase confirmation email]", err));
+      }
       break;
     }
     default:

@@ -12,7 +12,7 @@ Guide détaillé pas à pas : **[`V2_SETUP.md`](V2_SETUP.md)**.
 | --- | --- | --- |
 | **Supabase** (URL, anon, service role + SQL `purchases` / snapshot) | Souvent **OK** une fois migrations appliquées | `GET /api/health/cloud` → `supabaseAdmin: true` |
 | **Stripe Checkout** (clé secrète + 3 Price IDs) | **Souvent à finir** | Même endpoint → `stripeCheckout: true` quand tout est rempli |
-| **Webhook Stripe** | **Local ou prod à brancher** | Sans `STRIPE_WEBHOOK_SECRET` valide, la route webhook répond **503** ; l’upsert `purchases` côté événement peut ne pas tourner |
+| **Resend** (email confirmation) | **Optionnel** | `GET /api/health/cloud` → `resendEmail: true` |
 | **Cookie rapport** | OK si `STRIPE_SECRET_KEY` ou `PURCHASE_SIGNING_SECRET` | Déblocage `/report` après redirect `purchase/complete` |
 
 ---
@@ -76,7 +76,7 @@ Objectif : `stripeSecret: true` et `stripeCheckout: true`.
 
 1. **Appliquer la migration `003_premium_reports.sql`** sur ton projet Supabase (`db push` ou SQL Editor) — sans ça, l’upsert `premium_reports` log une erreur (l’achat `purchases` reste OK).
 2. **Stripe** : clés + webhooks + paiement test (voir section Stripe ci-dessus).
-3. **Email de confirmation** après `checkout.session.completed` (ex. Resend / SendGrid) — pas encore dans le code.
+3. **Email de confirmation** : variables **`RESEND_API_KEY`** + **`RESEND_FROM_EMAIL`** (voir `V2_SETUP.md`) — sinon aucun envoi (comportement actuel acceptable).
 4. **PDF** : génération async + `pdf_url` (Supabase Storage ou S3) + lien dans l’UI `/report`.
 5. **Auth** légère (magic link) et `user_id` sur `purchases` / `premium_reports` quand le modèle utilisateur sera posé.
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { appBaseUrl } from "@/lib/env/cloud-ready";
+import { sendPurchaseConfirmationEmail } from "@/lib/email/send-purchase-confirmation";
 import { purchaseInsertFromSession } from "@/lib/purchase/purchase-insert";
 import {
   REPORT_UNLOCK_COOKIE,
@@ -47,6 +48,14 @@ export async function GET(req: Request) {
   if (!row) {
     return NextResponse.redirect(fail);
   }
+
+  const to =
+    session.customer_details?.email ?? session.customer_email ?? null;
+  void sendPurchaseConfirmationEmail({
+    to,
+    sessionId: session.id,
+    productKey: row.product_key,
+  }).catch((err) => console.error("[purchase confirmation email]", err));
 
   const token = signReportUnlock(session.id, row.product_key);
   const ok = new URL("/report", base);

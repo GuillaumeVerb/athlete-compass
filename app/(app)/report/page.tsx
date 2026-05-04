@@ -4,6 +4,7 @@ import { LockedCard } from "@/components/premium/locked-card";
 import { PricingCard } from "@/components/pricing/pricing-card";
 import { ReportUnlockedBody } from "@/components/report/report-unlocked-body";
 import { MedicalDisclaimer } from "@/components/disclaimer";
+import { fetchPremiumReportMeta } from "@/lib/purchase/fetch-premium-report-meta";
 import { fetchPurchaseReportSnapshot } from "@/lib/purchase/fetch-purchase-snapshot";
 import { productKeyLabelFr } from "@/lib/purchase/product-key-label";
 import {
@@ -16,9 +17,12 @@ export default async function ReportPage() {
   const token = cookieStore.get(REPORT_UNLOCK_COOKIE)?.value;
   const unlock = token ? verifyReportUnlock(token) : null;
 
-  const serverSnapshot = unlock
-    ? await fetchPurchaseReportSnapshot(unlock.sessionId)
-    : null;
+  const [serverSnapshot, premiumMeta] = unlock
+    ? await Promise.all([
+        fetchPurchaseReportSnapshot(unlock.sessionId),
+        fetchPremiumReportMeta(unlock.sessionId),
+      ])
+    : [null, null];
 
   return (
     <div className="space-y-10">
@@ -42,6 +46,14 @@ export default async function ReportPage() {
               Résultats
             </Link>
             .
+            {premiumMeta ? (
+              <span className="mt-2 block text-xs text-foreground/85">
+                Rapport premium{" "}
+                <strong className="text-foreground/90">indexé en base</strong>{" "}
+                (statut {premiumMeta.status}
+                {premiumMeta.pdfUrl ? ", PDF disponible" : ""}).
+              </span>
+            ) : null}
           </div>
         ) : (
           <>

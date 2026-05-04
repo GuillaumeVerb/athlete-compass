@@ -31,6 +31,14 @@ export function isStripeCheckoutConfigured(): boolean {
   );
 }
 
+/** Email post-achat (Resend) — optionnel. */
+export function isResendEmailConfigured(): boolean {
+  return !!(
+    process.env.RESEND_API_KEY?.trim() &&
+    process.env.RESEND_FROM_EMAIL?.trim()
+  );
+}
+
 export function appBaseUrl(): string {
   const explicit = process.env.NEXT_PUBLIC_APP_URL?.trim();
   if (explicit) return explicit.replace(/\/$/, "");
