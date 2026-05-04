@@ -86,15 +86,16 @@ Si on veut une ligne par test plutôt qu’un JSON unique :
 | Colonne | Type | Notes |
 | --- | --- | --- |
 | `id` | `uuid` PK | |
-| `user_id` | `uuid` FK | |
+| `user_id` | `uuid` FK nullable | Invité tant qu’il n’y a pas d’auth |
 | `stripe_checkout_session_id` | `text` unique | |
 | `stripe_payment_intent_id` | `text` nullable | |
-| `product_key` | `text` | ex. `bilan_9`, `plan_19`, `pack_29` |
-| `amount`, `currency` | `int`, `text` | Centimes + ISO |
+| `product_key` | `text` | `bilan_9`, `plan_19`, `pack_29` |
+| `amount_cents`, `currency` | `int`, `text` | |
+| `customer_email` | `text` nullable | |
 | `status` | `text` | `pending`, `paid`, `refunded` |
 | `created_at` | `timestamptz` | |
 
-Index conseillés : `(user_id, created_at desc)`, `stripe_checkout_session_id`.
+Script SQL minimal versionné : **`docs/supabase/migrations/001_purchases.sql`**.
 
 ---
 
@@ -103,9 +104,9 @@ Index conseillés : `(user_id, created_at desc)`, `stripe_checkout_session_id`.
 1. L’utilisateur complète profil + performances (comme V1, éventuellement sync vers `profiles` / `assessments`).
 2. Il consulte l’aperçu résultats (gratuit).
 3. Clic « Débloquer mon rapport » → redirection ou **Stripe Checkout Session** créée côté serveur (Route Handler Next.js).
-4. Après paiement, Stripe redirige vers `/report/success?session_id=…`.
-5. Le client appelle une route qui vérifie la session et marque `purchases` + `premium_reports`.
-6. Le rapport complet est servi sur une **page authentifiée** ou via **lien signé** à durée limitée.
+4. Après paiement, Stripe redirige vers **`GET /api/purchase/complete?session_id=…`** (vérif serveur + upsert `purchases` + cookie httpOnly `ac_report_unlock`).
+5. Redirection vers **`/report`** : bannière « accès activé » si cookie valide.
+6. Le rapport détaillé (JSON / PDF) reste à brancher dans `premium_reports` (V2+).
 
 ---
 

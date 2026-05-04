@@ -56,7 +56,7 @@ export type PurchaseStatus = "pending" | "paid" | "refunded";
 
 export interface Purchase {
   id: string;
-  userId: string;
+  userId: string | null;
   stripeCheckoutSessionId: string;
   stripePaymentIntentId: string | null;
   productKey: PurchaseProductKey;

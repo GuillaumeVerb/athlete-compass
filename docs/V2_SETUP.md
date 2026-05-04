@@ -57,14 +57,19 @@ Copie le **signing secret** (`whsec_...`) dans `STRIPE_WEBHOOK_SECRET`, redémar
 
 > La route webhook répond **503** si le secret n’est pas défini : c’est normal en V1.
 
-### Supabase (plus tard)
+### Supabase (persistance `purchases`)
 
-Quand le projet Supabase existe :
+1. Crée un projet sur [Supabase](https://supabase.com/) et récupère l’URL + clés.
+2. Dans l’éditeur SQL, exécute le script **`docs/supabase/migrations/001_purchases.sql`** (table `public.purchases`).
+3. Renseigne `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` dans `.env.local`.
 
-- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` — client navigateur (`lib/supabase/browser-client.ts`).
-- `SUPABASE_SERVICE_ROLE_KEY` — **serveur uniquement** (`lib/supabase/admin-client.ts`).
+Sans cette table, le **webhook** et la route **`/api/purchase/complete`** journalisent une erreur côté serveur mais le paiement reste valide côté Stripe ; le **cookie de déblocage** `/report` fonctionne dès que `STRIPE_SECRET_KEY` (ou `PURCHASE_SIGNING_SECRET`) est défini.
 
-Aucun composant V1 ne dépend encore de ces clients.
+### Cookie rapport
+
+- Optionnel : `PURCHASE_SIGNING_SECRET` — sinon la signature du cookie réutilise `STRIPE_SECRET_KEY` (serveur uniquement, jamais exposée au client).
+
+Aucun composant V1 ne dépend du client navigateur Supabase pour l’instant.
 
 ## Fichiers concernés
 
@@ -75,7 +80,9 @@ Aucun composant V1 ne dépend encore de ces clients.
 | `lib/supabase/*.ts` | Clients Supabase optionnels |
 | `app/api/health/cloud/route.ts` | Santé intégrations |
 | `app/api/checkout/route.ts` | Session Checkout |
-| `app/api/webhooks/stripe/route.ts` | Webhook (signature vérifiée) |
+| `app/api/purchase/complete/route.ts` | Après paiement Stripe : vérifie la session, upsert `purchases`, cookie httpOnly, redirect `/report` |
+| `lib/purchase/*` | Ligne d’insert Stripe → SQL, cookie signé |
+| `docs/supabase/migrations/001_purchases.sql` | Table `purchases` minimale |
 | `components/checkout/checkout-context.tsx` | Provider : état Stripe pour toute la zone `(app)` |
 | `components/checkout/checkout-button.tsx` | CTA : Checkout ou lien de secours |
 | `components/pricing/pricing-card.tsx` | Cartes offres branchées sur `productKey` |
@@ -86,6 +93,9 @@ Aucun composant V1 ne dépend encore de ces clients.
 - **Tarifs** `/pricing` : chaque `PricingCard` a un `productKey` (`bilan_9`, `plan_19`, `pack_29`). Si Stripe est prêt → bouton **Payer (test)** ouvre Checkout ; sinon libellé **Bientôt disponible** + notice ambre.
 - **Résultats** : « Débloquer mon rapport » appelle le **Pack complet** si Stripe est prêt ; sinon le bouton se comporte comme un lien vers `/report` (`fallbackHref`).
 - **Rapport** : mêmes cartes avec `productKey` pour tester depuis la page verrouillée.
-- Retour Stripe : `success_url` / `cancel_url` pointent vers `/pricing?checkout=success` ou `cancel` — bannière informative en haut de page tarifs.
+- **Après paiement** : `success_url` → `GET /api/purchase/complete?session_id={CHECKOUT_SESSION_ID}` → redirection **`/report`** avec cookie **`ac_report_unlock`** (7 j). La page rapport affiche une bannière « accès activé » si le cookie est valide.
+- **Échec** : session introuvable / non payée → `/pricing?checkout=fail`.
+- **Annulation** : `cancel_url` → `/pricing?checkout=cancel` (bannière informative).
+- **Succès manuel** : si tu reviens sur `/pricing?checkout=success` (lien partagé), une bannière rappelle d’ouvrir `/report`.
 
 Schéma SQL cible : `docs/FUTURE_ARCHITECTURE.md`.

@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { upsertPurchaseRow } from "@/lib/purchase/upsert-purchase";
 import { getStripe } from "@/lib/stripe/server";
 
 export const runtime = "nodejs";
@@ -38,8 +39,7 @@ export async function POST(req: Request) {
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
-      // Ici : idempotent insert dans `purchases` (user_id depuis metadata ou client_reference_id).
-      void session.id;
+      await upsertPurchaseRow(session);
       break;
     }
     default:

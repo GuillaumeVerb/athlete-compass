@@ -14,11 +14,27 @@ export function PricingCheckoutFeedback() {
         role="status"
         className="rounded-2xl border border-neon/35 bg-neon/10 px-4 py-3 text-sm text-foreground/95"
       >
-        <strong className="text-neon">Paiement reçu (test).</strong> Le déblocage
-        automatique du rapport dans l&apos;app arrive en V2 — en attendant, ton
-        aperçu gratuit reste sur{" "}
+        <strong className="text-neon">Paiement reçu (test).</strong> Tu as dû
+        être redirigé vers le <Link href="/report" className="text-neon underline">rapport</Link> avec accès activé. Sinon ouvre le rapport manuellement.
+        Le détail cloud / PDF arrive en V2 — ton aperçu gratuit reste sur{" "}
         <Link href="/results" className="text-neon underline">
           Résultats
+        </Link>
+        .
+      </div>
+    );
+  }
+
+  if (checkout === "fail") {
+    return (
+      <div
+        role="status"
+        className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-foreground/95"
+      >
+        <strong className="text-destructive">Paiement non confirmé.</strong> La
+        session Stripe est introuvable ou non payée. Réessaie depuis{" "}
+        <Link href="/pricing" className="text-neon underline">
+          Tarifs
         </Link>
         .
       </div>
