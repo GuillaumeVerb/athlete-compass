@@ -56,6 +56,7 @@ Résumé : **V1** calculateur + diagnostic (local) ; **V2** Stripe + rapport pre
 - Cible Supabase + Stripe sans casser la V1 : [`docs/FUTURE_ARCHITECTURE.md`](docs/FUTURE_ARCHITECTURE.md)
 - Types cloud préparatoires : `lib/future/cloud-types.ts`
 - Variables d’environnement futures : `.env.example` (toutes optionnelles pour la V1)
+- Première couche API V2 (optionnelle) : `GET /api/health/cloud`, `POST /api/checkout`, `POST /api/webhooks/stripe` — voir [`docs/V2_SETUP.md`](docs/V2_SETUP.md)
 
 ## Documentation produit
 

@@ -141,6 +141,18 @@ Sécurité : ne jamais faire confiance au front pour « paid » ; toujours valid
 5. Déblocage UI `/report` selon `purchase` + `premium_reports.status`.
 6. Email transactionnel (Resend, SendGrid, etc.) — hors scope V1.
 
+### Routes API déjà présentes (squelette)
+
+Sans variables d’environnement, elles répondent **503** ou métadonnées neutres — la V1 reste utilisable.
+
+| Route | Description |
+|-------|-------------|
+| `GET /api/health/cloud` | Indique quelles intégrations sont configurées (sans secret). |
+| `POST /api/checkout` | Crée une Stripe Checkout Session si les Price IDs sont définis. |
+| `POST /api/webhooks/stripe` | Vérifie la signature ; hook `checkout.session.completed` (persistance à brancher). |
+
+Guide pas à pas : **[`docs/V2_SETUP.md`](V2_SETUP.md)**.
+
 ---
 
 ## Variables d’environnement futures
