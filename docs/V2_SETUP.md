@@ -76,5 +76,16 @@ Aucun composant V1 ne dépend encore de ces clients.
 | `app/api/health/cloud/route.ts` | Santé intégrations |
 | `app/api/checkout/route.ts` | Session Checkout |
 | `app/api/webhooks/stripe/route.ts` | Webhook (signature vérifiée) |
+| `components/checkout/checkout-context.tsx` | Provider : état Stripe pour toute la zone `(app)` |
+| `components/checkout/checkout-button.tsx` | CTA : Checkout ou lien de secours |
+| `components/pricing/pricing-card.tsx` | Cartes offres branchées sur `productKey` |
+
+## UI (parcours débloquer)
+
+- **Layout** `app/(app)/layout.tsx` enveloppe les pages authentifiées/shell avec `<CheckoutProvider>` (un appel à `/api/health/cloud` au montage).
+- **Tarifs** `/pricing` : chaque `PricingCard` a un `productKey` (`bilan_9`, `plan_19`, `pack_29`). Si Stripe est prêt → bouton **Payer (test)** ouvre Checkout ; sinon libellé **Bientôt disponible** + notice ambre.
+- **Résultats** : « Débloquer mon rapport » appelle le **Pack complet** si Stripe est prêt ; sinon le bouton se comporte comme un lien vers `/report` (`fallbackHref`).
+- **Rapport** : mêmes cartes avec `productKey` pour tester depuis la page verrouillée.
+- Retour Stripe : `success_url` / `cancel_url` pointent vers `/pricing?checkout=success` ou `cancel` — bannière informative en haut de page tarifs.
 
 Schéma SQL cible : `docs/FUTURE_ARCHITECTURE.md`.

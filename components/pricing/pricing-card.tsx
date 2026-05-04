@@ -1,5 +1,10 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CheckoutButton } from "@/components/checkout/checkout-button";
+import { useCheckoutAvailability } from "@/components/checkout/checkout-context";
+import type { PurchaseProductKey } from "@/lib/future/cloud-types";
 import { cn } from "@/lib/utils";
 
 export function PricingCard({
@@ -7,17 +12,19 @@ export function PricingCard({
   price,
   features,
   highlight,
-  ctaLabel,
-  checkoutDisabled = true,
+  productKey,
+  checkoutCtaLabel,
 }: {
   title: string;
   price: string;
   features: string[];
   highlight?: boolean;
-  ctaLabel?: string;
-  /** V1 : pas de Stripe — bouton désactivé par défaut */
-  checkoutDisabled?: boolean;
+  /** Si défini : bouton Stripe quand configuré, sinon « Bientôt disponible ». */
+  productKey?: PurchaseProductKey;
+  checkoutCtaLabel?: string;
 }) {
+  const { status, stripeCheckout } = useCheckoutAvailability();
+
   return (
     <div
       className={cn(
@@ -45,21 +52,32 @@ export function PricingCard({
           </li>
         ))}
       </ul>
-      <Button
-        className="mt-8 w-full rounded-xl"
-        variant={highlight ? "amber" : "default"}
-        disabled={checkoutDisabled}
-        title={
-          checkoutDisabled
-            ? "Paiement non disponible en démo V1"
-            : undefined
-        }
-      >
-        {ctaLabel ?? (checkoutDisabled ? "Bientôt disponible" : "Continuer")}
-      </Button>
-      {checkoutDisabled ? (
+      {productKey ? (
+        <CheckoutButton
+          productKey={productKey}
+          className="mt-8 w-full rounded-xl"
+          variant={highlight ? "amber" : "default"}
+        >
+          {checkoutCtaLabel ?? "Payer (test)"}
+        </CheckoutButton>
+      ) : (
+        <Button
+          className="mt-8 w-full rounded-xl"
+          variant={highlight ? "amber" : "default"}
+          disabled
+          title="Offre sans checkout — renseigne productKey sur la carte."
+        >
+          Bientôt disponible
+        </Button>
+      )}
+      {productKey && status === "ready" && !stripeCheckout ? (
         <p className="mt-2 text-center text-[10px] text-muted">
           Simulation — aucun prélèvement
+        </p>
+      ) : null}
+      {productKey && status === "ready" && stripeCheckout ? (
+        <p className="mt-2 text-center text-[10px] text-muted">
+          Redirection sécurisée vers Stripe
         </p>
       ) : null}
     </div>

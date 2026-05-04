@@ -46,6 +46,7 @@ export default function ReportPage() {
           <PricingCard
             title="Bilan complet"
             price="9 €"
+            productKey="bilan_9"
             features={[
               "Rapport détaillé",
               "Âge athlétique",
@@ -57,6 +58,7 @@ export default function ReportPage() {
           <PricingCard
             title="Plan 4 semaines"
             price="19 €"
+            productKey="plan_19"
             features={[
               "Objectifs 4 semaines",
               "Plan d’entraînement",
@@ -68,6 +70,7 @@ export default function ReportPage() {
             title="Pack complet"
             price="29 €"
             highlight
+            productKey="pack_29"
             features={[
               "Tout du bilan complet",
               "Tout du plan 4 semaines",

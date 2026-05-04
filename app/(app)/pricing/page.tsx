@@ -1,8 +1,12 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { PricingCard } from "@/components/pricing/pricing-card";
+import {
+  PricingStripeBadge,
+  PricingStripeBanner,
+} from "@/components/pricing/pricing-checkout-ui";
+import { PricingCheckoutFeedback } from "@/components/pricing/pricing-checkout-feedback";
 import { MedicalDisclaimer } from "@/components/disclaimer";
-import { Badge } from "@/components/ui/badge";
-import { Lock } from "lucide-react";
 
 const FREE_INCLUDES = [
   "Âge athlétique estimé",
@@ -26,25 +30,21 @@ const PREMIUM_INCLUDES = [
 export default function PricingPage() {
   return (
     <div className="space-y-12">
+      <Suspense fallback={null}>
+        <PricingCheckoutFeedback />
+      </Suspense>
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-display text-3xl font-semibold text-foreground">
             Tarifs
           </h1>
-          <Badge variant="secondary" className="gap-1">
-            <Lock className="h-3 w-3" aria-hidden />
-            Simulation V1
-          </Badge>
+          <PricingStripeBadge />
         </div>
         <p className="max-w-2xl text-muted">
-          Paiement non connecté : tu prévisualises les offres et le parcours
-          premium. Aucune carte bancaire, aucun compte obligatoire.
+          Paiement réel uniquement si Stripe est configuré (mode test). Sinon,
+          navigation démo inchangée.
         </p>
-        <div className="rounded-2xl border border-amber/30 bg-amber/10 px-4 py-3 text-sm text-foreground/95">
-          <strong className="text-amber">Stripe plus tard.</strong> En V1, les
-          boutons d&apos;achat restent désactivés — on valide la valeur perçue
-          avant d&apos;industrialiser la caisse.
-        </div>
+        <PricingStripeBanner />
       </div>
 
       <section className="space-y-4" aria-labelledby="value-prop">
@@ -115,6 +115,7 @@ export default function PricingPage() {
           <PricingCard
             title="Bilan complet"
             price="9 €"
+            productKey="bilan_9"
             features={[
               "Rapport détaillé",
               "Âge athlétique",
@@ -127,6 +128,7 @@ export default function PricingPage() {
           <PricingCard
             title="Plan 4 semaines"
             price="19 €"
+            productKey="plan_19"
             features={[
               "Objectifs 4 semaines",
               "Plan minimal efficace",
@@ -139,6 +141,7 @@ export default function PricingPage() {
             title="Pack complet"
             price="29 €"
             highlight
+            productKey="pack_29"
             features={[
               "Tout du bilan complet",
               "Tout du plan 4 semaines",

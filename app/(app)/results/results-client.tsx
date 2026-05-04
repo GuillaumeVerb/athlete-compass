@@ -22,6 +22,7 @@ import { NextBestMoveCard } from "@/components/results/next-best-move-card";
 import { GoalsFourWeeksCard } from "@/components/results/goals-four-weeks-card";
 import { GoalHybridExplainer } from "@/components/results/goal-hybrid-explainer";
 import { MedicalDisclaimer } from "@/components/disclaimer";
+import { CheckoutButton } from "@/components/checkout/checkout-button";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -259,9 +260,13 @@ export function ResultsClient() {
           </p>
         </div>
         <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
-          <Button asChild className="rounded-xl">
-            <Link href="/report">Débloquer mon rapport</Link>
-          </Button>
+          <CheckoutButton
+            productKey="pack_29"
+            className="rounded-xl"
+            fallbackHref="/report"
+          >
+            Débloquer mon rapport
+          </CheckoutButton>
           <Button asChild variant="outline" className="rounded-xl">
             <Link href="/pricing">Voir les offres</Link>
           </Button>
