@@ -60,7 +60,7 @@ Copie le **signing secret** (`whsec_...`) dans `STRIPE_WEBHOOK_SECRET`, redémar
 ### Supabase (persistance `purchases`)
 
 1. Crée un projet sur [Supabase](https://supabase.com/) et récupère l’URL + clés.
-2. Dans l’éditeur SQL, exécute le script **`docs/supabase/migrations/001_purchases.sql`** (table `public.purchases`).
+2. Dans l’éditeur SQL, exécute **`docs/supabase/migrations/001_purchases.sql`** puis **`002_report_snapshot.sql`** (colonne `report_snapshot` sur `purchases`, table `checkout_snapshots` pour figer le bilan au checkout).
 3. Renseigne `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` dans `.env.local`.
 
 Sans cette table, le **webhook** et la route **`/api/purchase/complete`** journalisent une erreur côté serveur mais le paiement reste valide côté Stripe ; le **cookie de déblocage** `/report` fonctionne dès que `STRIPE_SECRET_KEY` (ou `PURCHASE_SIGNING_SECRET`) est défini.
@@ -83,6 +83,7 @@ Aucun composant V1 ne dépend du client navigateur Supabase pour l’instant.
 | `app/api/purchase/complete/route.ts` | Après paiement Stripe : vérifie la session, upsert `purchases`, cookie httpOnly, redirect `/report` |
 | `lib/purchase/*` | Ligne d’insert Stripe → SQL, cookie signé |
 | `docs/supabase/migrations/001_purchases.sql` | Table `purchases` minimale |
+| `docs/supabase/migrations/002_report_snapshot.sql` | Snapshot bilan (`report_snapshot`, `checkout_snapshots`) |
 | `components/checkout/checkout-context.tsx` | Provider : état Stripe pour toute la zone `(app)` |
 | `components/checkout/checkout-button.tsx` | CTA : Checkout ou lien de secours |
 | `components/pricing/pricing-card.tsx` | Cartes offres branchées sur `productKey` |
@@ -92,7 +93,7 @@ Aucun composant V1 ne dépend du client navigateur Supabase pour l’instant.
 - **Layout** `app/(app)/layout.tsx` enveloppe les pages authentifiées/shell avec `<CheckoutProvider>` (un appel à `/api/health/cloud` au montage).
 - **Tarifs** `/pricing` : chaque `PricingCard` a un `productKey` (`bilan_9`, `plan_19`, `pack_29`). Si Stripe est prêt → bouton **Payer (test)** ouvre Checkout ; sinon libellé **Bientôt disponible** + notice ambre.
 - **Résultats** : « Débloquer mon rapport » appelle le **Pack complet** si Stripe est prêt ; sinon le bouton se comporte comme un lien vers `/report` (`fallbackHref`).
-- **Rapport débloqué** : sans cookie, grille verrouillée + offres. Avec cookie valide : **`ReportUnlockedBody`** lit le profil / performances **localStorage** (ou démo), recalcule le score et affiche synthèse, Performance Gap, profil, limiteur, Next Best Move, objectifs 4 semaines + liens vers `/results`, `/plan`, `/equivalences`.
+- **Rapport débloqué** : sans cookie, grille verrouillée + offres. Avec cookie valide : **`ReportUnlockedBody`** affiche d’abord le **bilan figé au paiement** (`purchases.report_snapshot`) si Supabase l’a enregistré ; sinon profil / performances **localStorage** (ou démo) et recalcul sur l’appareil. Synthèse, Performance Gap, profil, limiteur, Next Best Move, objectifs 4 semaines + liens vers `/results`, `/plan`, `/equivalences`.
 - **Après paiement** : `success_url` → `GET /api/purchase/complete?session_id={CHECKOUT_SESSION_ID}` → redirection **`/report`** avec cookie **`ac_report_unlock`** (7 j). La page rapport affiche une bannière « accès activé » si le cookie est valide.
 - **Échec** : session introuvable / non payée → `/pricing?checkout=fail`.
 - **Annulation** : `cancel_url` → `/pricing?checkout=cancel` (bannière informative).

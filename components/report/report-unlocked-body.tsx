@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { computeScoreResult } from "@/lib/scoring";
 import { goalLabelFr } from "@/lib/scoring/goal-hybrid-copy";
+import type { ReportSnapshotV1 } from "@/lib/purchase/report-snapshot-types";
 import { DEMO_PERFORMANCE, DEMO_PROFILE } from "@/lib/mock-data";
 import { loadPerformance, loadProfile } from "@/lib/storage";
 import type { PurchaseProductKey } from "@/lib/future/cloud-types";
@@ -12,18 +13,36 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
+type Payload = {
+  result: ScoreResult;
+  profile: UserProfile;
+  perf: PerformanceInput;
+  source: "server" | "local";
+  savedAt?: string;
+};
+
 export function ReportUnlockedBody({
   productKey,
+  serverSnapshot,
 }: {
   productKey: PurchaseProductKey;
+  /** Bilan figé en base (Supabase) au paiement — sinon recalcul navigateur. */
+  serverSnapshot?: ReportSnapshotV1 | null;
 }) {
-  const [payload, setPayload] = useState<{
-    result: ScoreResult;
-    profile: UserProfile;
-    perf: PerformanceInput;
-  } | null>(null);
+  const [payload, setPayload] = useState<Payload | null>(() =>
+    serverSnapshot
+      ? {
+          result: serverSnapshot.result,
+          profile: serverSnapshot.profile,
+          perf: serverSnapshot.performance,
+          source: "server",
+          savedAt: serverSnapshot.savedAt,
+        }
+      : null,
+  );
 
   useEffect(() => {
+    if (serverSnapshot) return;
     queueMicrotask(() => {
       const profile = loadProfile() ?? DEMO_PROFILE;
       const perf = loadPerformance() ?? DEMO_PERFORMANCE;
@@ -31,9 +50,10 @@ export function ReportUnlockedBody({
         profile,
         perf,
         result: computeScoreResult(profile, perf),
+        source: "local",
       });
     });
-  }, []);
+  }, [serverSnapshot]);
 
   if (!payload) {
     return (
@@ -48,14 +68,35 @@ export function ReportUnlockedBody({
     );
   }
 
-  const { result, profile } = payload;
+  const { result, profile, source, savedAt } = payload;
 
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted">
-        Aperçu « rapport » généré à partir de tes données{" "}
-        <strong className="text-foreground/90">en local sur cet appareil</strong>{" "}
-        (profil + performances). Offre payée :{" "}
+        {source === "server" ? (
+          <>
+            Bilan figé au paiement et{" "}
+            <strong className="text-foreground/90">stocké sur le serveur</strong>
+            {savedAt ? (
+              <>
+                {" "}
+                (
+                {new Date(savedAt).toLocaleString("fr-FR", {
+                  dateStyle: "short",
+                  timeStyle: "short",
+                })}
+                ).
+              </>
+            ) : null}{" "}
+          </>
+        ) : (
+          <>
+            Aperçu généré à partir de tes données{" "}
+            <strong className="text-foreground/90">sur cet appareil</strong>{" "}
+            (localStorage).{" "}
+          </>
+        )}
+        Offre :{" "}
         <Badge variant="secondary" className="align-middle">
           {productKey === "bilan_9"
             ? "Bilan complet"

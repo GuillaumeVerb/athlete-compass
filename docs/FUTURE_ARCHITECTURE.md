@@ -93,9 +93,10 @@ Si on veut une ligne par test plutôt qu’un JSON unique :
 | `amount_cents`, `currency` | `int`, `text` | |
 | `customer_email` | `text` nullable | |
 | `status` | `text` | `pending`, `paid`, `refunded` |
+| `report_snapshot` | `jsonb` nullable | Bilan figé au checkout (profil + perfs + score recalculé serveur) |
 | `created_at` | `timestamptz` | |
 
-Script SQL minimal versionné : **`docs/supabase/migrations/001_purchases.sql`**.
+Script SQL minimal versionné : **`docs/supabase/migrations/001_purchases.sql`**, puis **`002_report_snapshot.sql`** (`report_snapshot` + table temporaire `checkout_snapshots` liée par `snapshot_id` en metadata Stripe jusqu’au webhook).
 
 ---
 
@@ -103,7 +104,7 @@ Script SQL minimal versionné : **`docs/supabase/migrations/001_purchases.sql`**
 
 1. L’utilisateur complète profil + performances (comme V1, éventuellement sync vers `profiles` / `assessments`).
 2. Il consulte l’aperçu résultats (gratuit).
-3. Clic « Débloquer mon rapport » → redirection ou **Stripe Checkout Session** créée côté serveur (Route Handler Next.js).
+3. Clic « Débloquer mon rapport » → **Stripe Checkout Session** créée côté serveur ; le client peut envoyer **`snapshot`** `{ profile, performance }` → serveur recalcule le score, stocke un pending row, passe **`snapshot_id`** en metadata session.
 4. Après paiement, Stripe redirige vers **`GET /api/purchase/complete?session_id=…`** (vérif serveur + upsert `purchases` + cookie httpOnly `ac_report_unlock`).
 5. Redirection vers **`/report`** : bannière « accès activé » si cookie valide.
 6. Le rapport détaillé (JSON / PDF) reste à brancher dans `premium_reports` (V2+).
@@ -112,7 +113,7 @@ Script SQL minimal versionné : **`docs/supabase/migrations/001_purchases.sql`**
 
 ## Flux paiement (Stripe)
 
-1. **POST** `/api/checkout` (exemple) : body `{ productKey, assessmentId }` → vérif user → `stripe.checkout.sessions.create`.
+1. **POST** `/api/checkout` : body `{ productKey, snapshot?: { profile, performance } }` → session Stripe ; metadata `productKey`, éventuellement `snapshot_id`.
 2. Utilisateur paie sur Stripe Hosted Checkout.
 3. **Webhook** `checkout.session.completed` (et `payment_intent.succeeded` si besoin) :
    - Vérifier la signature (`STRIPE_WEBHOOK_SECRET`).

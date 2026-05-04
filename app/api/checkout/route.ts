@@ -1,12 +1,18 @@
 import { z } from "zod";
 import { appBaseUrl, isStripeCheckoutConfigured } from "@/lib/env/cloud-ready";
+import { insertPendingCheckoutSnapshot } from "@/lib/purchase/checkout-snapshot-db";
 import type { PurchaseProductKey } from "@/lib/future/cloud-types";
+import { checkoutSnapshotBodySchema } from "@/lib/purchase/snapshot-schema";
+import type { ReportSnapshotV1 } from "@/lib/purchase/report-snapshot-types";
+import { computeScoreResult } from "@/lib/scoring";
+import { createAdminSupabase } from "@/lib/supabase/admin-client";
 import { getStripe } from "@/lib/stripe/server";
 
 export const runtime = "nodejs";
 
 const bodySchema = z.object({
   productKey: z.enum(["bilan_9", "plan_19", "pack_29"]),
+  snapshot: checkoutSnapshotBodySchema.optional(),
 });
 
 const PRICE_ENV_KEY: Record<PurchaseProductKey, string> = {
@@ -16,9 +22,8 @@ const PRICE_ENV_KEY: Record<PurchaseProductKey, string> = {
 };
 
 /**
- * POST JSON `{ "productKey": "bilan_9" | "plan_19" | "pack_29" }`
- * → `{ "url": "https://checkout.stripe.com/..." }` si Stripe + Price IDs sont configurés.
- * Sinon 503 (V1 inchangée côté UI).
+ * POST JSON `{ "productKey", "snapshot"?: { profile, performance } }`
+ * → session Stripe ; si Supabase + snapshot valides, `snapshot_id` en metadata.
  */
 export async function POST(req: Request) {
   if (!isStripeCheckoutConfigured()) {
@@ -52,7 +57,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { productKey } = parsed.data;
+  const { productKey, snapshot: snapshotBody } = parsed.data;
   const envKey = PRICE_ENV_KEY[productKey];
   const priceId = process.env[envKey]?.trim();
   if (!priceId) {
@@ -64,12 +69,33 @@ export async function POST(req: Request) {
 
   const base = appBaseUrl();
 
+  const metadata: Record<string, string> = { productKey };
+
+  const admin = createAdminSupabase();
+  if (snapshotBody && admin) {
+    const result = computeScoreResult(
+      snapshotBody.profile,
+      snapshotBody.performance,
+    );
+    const payload: ReportSnapshotV1 = {
+      version: 1,
+      profile: snapshotBody.profile,
+      performance: snapshotBody.performance,
+      result,
+      savedAt: new Date().toISOString(),
+    };
+    const snapshotId = await insertPendingCheckoutSnapshot(payload);
+    if (snapshotId) {
+      metadata.snapshot_id = snapshotId;
+    }
+  }
+
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: `${base}/api/purchase/complete?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${base}/pricing?checkout=cancel`,
-    metadata: { productKey },
+    metadata,
   });
 
   if (!session.url) {

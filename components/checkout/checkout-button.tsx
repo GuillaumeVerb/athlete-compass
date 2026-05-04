@@ -5,6 +5,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCheckoutAvailability } from "@/components/checkout/checkout-context";
 import type { PurchaseProductKey } from "@/lib/future/cloud-types";
+import { DEMO_PERFORMANCE, DEMO_PROFILE } from "@/lib/mock-data";
+import { loadPerformance, loadProfile } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 
 type ButtonProps = React.ComponentProps<typeof Button>;
@@ -62,10 +64,16 @@ export function CheckoutButton({
     setError(null);
     setPending(true);
     try {
+      const profile = loadProfile() ?? DEMO_PROFILE;
+      const performance = loadPerformance() ?? DEMO_PERFORMANCE;
+
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productKey }),
+        body: JSON.stringify({
+          productKey,
+          snapshot: { profile, performance },
+        }),
       });
       const data = (await res.json()) as {
         url?: string;

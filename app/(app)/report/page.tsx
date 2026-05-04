@@ -4,6 +4,7 @@ import { LockedCard } from "@/components/premium/locked-card";
 import { PricingCard } from "@/components/pricing/pricing-card";
 import { ReportUnlockedBody } from "@/components/report/report-unlocked-body";
 import { MedicalDisclaimer } from "@/components/disclaimer";
+import { fetchPurchaseReportSnapshot } from "@/lib/purchase/fetch-purchase-snapshot";
 import { productKeyLabelFr } from "@/lib/purchase/product-key-label";
 import {
   REPORT_UNLOCK_COOKIE,
@@ -14,6 +15,10 @@ export default async function ReportPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get(REPORT_UNLOCK_COOKIE)?.value;
   const unlock = token ? verifyReportUnlock(token) : null;
+
+  const serverSnapshot = unlock
+    ? await fetchPurchaseReportSnapshot(unlock.sessionId)
+    : null;
 
   return (
     <div className="space-y-10">
@@ -27,9 +32,12 @@ export default async function ReportPage() {
             className="mt-4 max-w-3xl rounded-2xl border border-neon/40 bg-neon/10 px-4 py-3 text-sm leading-relaxed text-foreground/95"
           >
             <strong className="text-neon">Accès rapport activé.</strong> Achat
-            enregistré : {productKeyLabelFr(unlock.productKey)}. Ci-dessous :
-            synthèse calculée sur cet appareil. PDF, exports et historique cloud
-            arrivent en V2 — aperçu gratuit toujours sur{" "}
+            enregistré : {productKeyLabelFr(unlock.productKey)}. Ci-dessous :{" "}
+            {serverSnapshot
+              ? "bilan figé au moment du paiement (serveur)."
+              : "synthèse recalculée sur cet appareil (localStorage)."}
+            {" "}
+            PDF, exports et historique cloud arrivent en V2 — aperçu gratuit sur{" "}
             <Link href="/results" className="text-neon underline">
               Résultats
             </Link>
@@ -56,7 +64,10 @@ export default async function ReportPage() {
       </div>
 
       {unlock ? (
-        <ReportUnlockedBody productKey={unlock.productKey} />
+        <ReportUnlockedBody
+          productKey={unlock.productKey}
+          serverSnapshot={serverSnapshot}
+        />
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           <LockedCard
