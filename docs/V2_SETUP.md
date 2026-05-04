@@ -92,7 +92,7 @@ Aucun composant V1 ne dépend du client navigateur Supabase pour l’instant.
 - **Layout** `app/(app)/layout.tsx` enveloppe les pages authentifiées/shell avec `<CheckoutProvider>` (un appel à `/api/health/cloud` au montage).
 - **Tarifs** `/pricing` : chaque `PricingCard` a un `productKey` (`bilan_9`, `plan_19`, `pack_29`). Si Stripe est prêt → bouton **Payer (test)** ouvre Checkout ; sinon libellé **Bientôt disponible** + notice ambre.
 - **Résultats** : « Débloquer mon rapport » appelle le **Pack complet** si Stripe est prêt ; sinon le bouton se comporte comme un lien vers `/report` (`fallbackHref`).
-- **Rapport** : mêmes cartes avec `productKey` pour tester depuis la page verrouillée.
+- **Rapport débloqué** : sans cookie, grille verrouillée + offres. Avec cookie valide : **`ReportUnlockedBody`** lit le profil / performances **localStorage** (ou démo), recalcule le score et affiche synthèse, Performance Gap, profil, limiteur, Next Best Move, objectifs 4 semaines + liens vers `/results`, `/plan`, `/equivalences`.
 - **Après paiement** : `success_url` → `GET /api/purchase/complete?session_id={CHECKOUT_SESSION_ID}` → redirection **`/report`** avec cookie **`ac_report_unlock`** (7 j). La page rapport affiche une bannière « accès activé » si le cookie est valide.
 - **Échec** : session introuvable / non payée → `/pricing?checkout=fail`.
 - **Annulation** : `cancel_url` → `/pricing?checkout=cancel` (bannière informative).
