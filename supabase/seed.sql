@@ -1,0 +1,1 @@
+-- Aucune donnée de démo pour l’instant (db reset local uniquement).

@@ -60,8 +60,12 @@ Copie le **signing secret** (`whsec_...`) dans `STRIPE_WEBHOOK_SECRET`, redémar
 ### Supabase (persistance `purchases`)
 
 1. Crée un projet sur [Supabase](https://supabase.com/) et récupère l’URL + clés.
-2. Dans l’éditeur SQL, exécute **`docs/supabase/migrations/001_purchases.sql`** puis **`002_report_snapshot.sql`** (colonne `report_snapshot` sur `purchases`, table `checkout_snapshots` pour figer le bilan au checkout).
-3. Renseigne `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` dans `.env.local`.
+2. Applique le schéma (au choix) :
+   - **SQL Editor** : colle **`docs/supabase/migrations/001_purchases.sql`** puis **`002_report_snapshot.sql`** ;
+   - **CLI** (depuis la racine **`athlete_compass`**, pas un dossier parent) : une fois `supabase link` fait avec ton *project ref*, `supabase db push` applique les fichiers dans **`supabase/migrations/`** (miroir du même SQL).
+3. Renseigne `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` dans `.env` ou `.env.local`.
+
+> **Erreurs fréquentes en CLI** : `open supabase/config.toml: no such file` → lancer `supabase init` dans **`athlete_compass`** (dossier où vit `package.json`). Les lignes de doc qui commencent par `#` sont des **commentaires** : ne les colle pas dans le terminal (sinon `command not found: #`).
 
 Sans cette table, le **webhook** et la route **`/api/purchase/complete`** journalisent une erreur côté serveur mais le paiement reste valide côté Stripe ; le **cookie de déblocage** `/report` fonctionne dès que `STRIPE_SECRET_KEY` (ou `PURCHASE_SIGNING_SECRET`) est défini.
 
@@ -82,8 +86,10 @@ Aucun composant V1 ne dépend du client navigateur Supabase pour l’instant.
 | `app/api/checkout/route.ts` | Session Checkout |
 | `app/api/purchase/complete/route.ts` | Après paiement Stripe : vérifie la session, upsert `purchases`, cookie httpOnly, redirect `/report` |
 | `lib/purchase/*` | Ligne d’insert Stripe → SQL, cookie signé |
-| `docs/supabase/migrations/001_purchases.sql` | Table `purchases` minimale |
-| `docs/supabase/migrations/002_report_snapshot.sql` | Snapshot bilan (`report_snapshot`, `checkout_snapshots`) |
+| `docs/supabase/migrations/001_purchases.sql` | Table `purchases` minimale (SQL Editor) |
+| `docs/supabase/migrations/002_report_snapshot.sql` | Snapshot bilan (SQL Editor) |
+| `supabase/config.toml` | Config locale générée par `supabase init` |
+| `supabase/migrations/*.sql` | Mêmes migrations pour `supabase db push` |
 | `components/checkout/checkout-context.tsx` | Provider : état Stripe pour toute la zone `(app)` |
 | `components/checkout/checkout-button.tsx` | CTA : Checkout ou lien de secours |
 | `components/pricing/pricing-card.tsx` | Cartes offres branchées sur `productKey` |
