@@ -3,6 +3,7 @@ import {
   isResendEmailConfigured,
   isStripeCheckoutConfigured,
   isStripeSecretConfigured,
+  isStripeWebhookConfigured,
   isSupabaseAdminConfigured,
   isSupabaseBrowserConfigured,
 } from "@/lib/env/cloud-ready";
@@ -13,6 +14,7 @@ export async function GET() {
     supabaseBrowser: isSupabaseBrowserConfigured(),
     supabaseAdmin: isSupabaseAdminConfigured(),
     stripeSecret: isStripeSecretConfigured(),
+    stripeWebhook: isStripeWebhookConfigured(),
     stripeCheckout: isStripeCheckoutConfigured(),
     resendEmail: isResendEmailConfigured(),
     cronRetestReminders: isCronSecretConfigured(),

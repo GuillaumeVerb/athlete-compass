@@ -21,6 +21,11 @@ export function isStripeSecretConfigured(): boolean {
   return !!process.env.STRIPE_SECRET_KEY?.trim();
 }
 
+/** Webhook Stripe (`/api/webhooks/stripe`) — `STRIPE_WEBHOOK_SECRET` (whsec_…). */
+export function isStripeWebhookConfigured(): boolean {
+  return !!process.env.STRIPE_WEBHOOK_SECRET?.trim();
+}
+
 /** Checkout utilisable : clé Stripe + les trois Price IDs catalogue. */
 export function isStripeCheckoutConfigured(): boolean {
   return (
