@@ -1,4 +1,5 @@
 import {
+  isCronSecretConfigured,
   isResendEmailConfigured,
   isStripeCheckoutConfigured,
   isStripeSecretConfigured,
@@ -14,5 +15,6 @@ export async function GET() {
     stripeSecret: isStripeSecretConfigured(),
     stripeCheckout: isStripeCheckoutConfigured(),
     resendEmail: isResendEmailConfigured(),
+    cronRetestReminders: isCronSecretConfigured(),
   });
 }

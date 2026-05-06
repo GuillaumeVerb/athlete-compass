@@ -17,13 +17,19 @@ describe("buildPerformanceInputFromForm (onglet Perf)", () => {
   it("refuse des tractions non entières", () => {
     const r = buildPerformanceInputFromForm({ pullups: "10.5" });
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.error).toContain("Tractions");
+    if (!r.ok) expect(r.error).toContain("Tractions strictes");
   });
 
   it("refuse un poids ≤ 0 hors tractions", () => {
     const r = buildPerformanceInputFromForm({ frontSquat5: "0" });
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.error).toContain("Front squat");
+  });
+
+  it("accepte sandbag carry au format slash", () => {
+    const r = buildPerformanceInputFromForm({ sandbagCarry: "40/50" });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.data.sandbagCarry).toBe("40/50");
   });
 
   it("accepte farmer carry au format slash", () => {

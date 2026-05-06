@@ -7,7 +7,7 @@ import type {
 } from "@/lib/types";
 import { TEST_PROTOCOLS } from "@/lib/tests/test-protocols";
 import { estimateAthleticAge } from "./athletic-age";
-import { cardioIntenseFromRow1k } from "./cardio";
+import { cardioIntenseFromPerf } from "./cardio";
 import { coreCarryScore } from "./core-carry";
 import { enduranceScore } from "./endurance";
 import { forceScore } from "./force";
@@ -108,14 +108,19 @@ export function computeScoreResult(
   perf: PerformanceInput,
 ): ScoreResult {
   const breakdown: ScoreBreakdown = {
-    cardioIntense: cardioIntenseFromRow1k(perf.row1k, profile.sex),
+    cardioIntense: cardioIntenseFromPerf(perf, profile.sex),
     endurance: enduranceScore(perf, profile.sex),
     force: forceScore({
       weightKg: profile.weightKg,
       sex: profile.sex,
       frontSquat5: perf.frontSquat5,
+      backSquat3: perf.backSquat3,
+      bulgarianSplitSquat8: perf.bulgarianSplitSquat8,
+      benchPress5: perf.benchPress5,
       ohp5: perf.ohp5,
+      tbarRow10: perf.tbarRow10,
       deadlift5: perf.deadlift5,
+      boxJumpMaxCm: perf.boxJumpMaxCm,
     }),
     muscularEndurance: muscularEnduranceScore(perf, profile.sex),
     coreCarry: coreCarryScore(perf, profile.sex),

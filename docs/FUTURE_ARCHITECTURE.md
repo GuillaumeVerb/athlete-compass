@@ -40,19 +40,22 @@ Profil athlète (équivalent `UserProfile` + métadonnées).
 
 ### `assessments`
 
-Un **bilan** calculé à un instant T (résultat du moteur).
+Un **bilan** calculé à un instant T (résultat du moteur). **Implémenté** : migration `20260507120000_assessments.sql` (+ miroir `docs/supabase/migrations/006_assessments.sql`).
 
 | Colonne | Type | Notes |
 | --- | --- | --- |
 | `id` | `uuid` PK | |
-| `user_id` | `uuid` FK | |
-| `profile_id` | `uuid` FK nullable | Profil utilisé pour le calcul |
-| `hybrid_score`, `athletic_age`, `reliability` | `numeric` / `int` | |
-| `profile_label`, `limiter` | `text` | |
-| `next_best_move` | `jsonb` | Objet type `NextBestMovePlan` |
+| `user_id` | `uuid` FK → `auth.users` | Obligatoire |
+| `profile_id` | `uuid` nullable | Réservé table `profiles` future |
+| `hybrid_score`, `athletic_age`, `reliability_pct` | `numeric` | |
+| `profile_label`, `profile_key`, `limiter` | `text` | `profile_key` = `ScoreResult.profileId` |
+| `next_best_move` | `jsonb` | `NextBestMovePlan` |
 | `breakdown` | `jsonb` | `ScoreBreakdown` |
 | `goals_4_weeks` | `jsonb` | `string[]` |
-| `performance_snapshot` | `jsonb` | Copie de `PerformanceInput` utilisée |
+| `performance_snapshot` | `jsonb` | `PerformanceInput` |
+| `profile_snapshot` | `jsonb` | `UserProfile` utilisé pour le calcul |
+| `source` | `text` | `manual` \| `retest_30d` \| `import` |
+| `previous_assessment_id` | `uuid` nullable | FK vers `assessments` |
 | `created_at` | `timestamptz` | |
 
 ### `performance_tests` (option normalisée)
@@ -152,6 +155,12 @@ Sans variables d’environnement, elles répondent **503** ou métadonnées neut
 | `GET /api/health/cloud` | Indique quelles intégrations sont configurées (sans secret). |
 | `POST /api/checkout` | Crée une Stripe Checkout Session si les Price IDs sont définis. |
 | `POST /api/webhooks/stripe` | Vérifie la signature ; hook `checkout.session.completed` (persistance à brancher). |
+| `POST /api/plan/snapshot` | Snapshot plan 4 sem. → `plan_instances` (JWT / cookie achat optionnels). |
+| `GET /api/plan/history` | Historique `plan_instances` filtré sync et/ou utilisateur. |
+| `POST /api/assessments` | Bilan daté → `assessments` (**JWT Bearer** obligatoire). |
+| `GET /api/assessments` | Liste des bilans de l’utilisateur connecté. |
+| `GET /api/assessments/:id` | Détail JSON (snapshot profil + perfs + scores). |
+| `GET /api/assessments/compare` | Delta entre deux UUID (`from`, `to`). |
 
 Guide pas à pas : **[`docs/V2_SETUP.md`](V2_SETUP.md)** — tâches dashboard (Stripe, Resend, déploiement) : **[`docs/V2_A_FAIRE.md`](V2_A_FAIRE.md)**.
 
@@ -166,3 +175,98 @@ Voir **`.env.example`** à la racine du repo. Aucune de ces variables n’est re
 ## Types TypeScript
 
 Les structures persistées et payloads rapport sont décrites dans **`lib/future/cloud-types.ts`** pour garder un seul vocabulaire entre front, API routes futures et schéma SQL.
+
+---
+
+## V3 — Bilans, historique et retest (~30 jours)
+
+**Objectif** : une personne connectée retrouve **plusieurs bilans datés**, compare avant/après, et suit un **cadencement de retest** (sans promesse médicale).
+
+### État actuel dans le repo
+
+- Migration **`20260507120000_assessments.sql`** : table **`assessments`** + RLS pour le rôle **`authenticated`** (lecture / écriture sur ses propres `user_id`). Les routes Next.js valident le **JWT** puis insèrent via la **service role** (contourne RLS).
+- **`POST /api/assessments`** : corps aligné sur le snapshot checkout (`profile`, `performance`) + optionnel `source`, `previousAssessmentId` (même utilisateur).
+- **`GET /api/assessments`**, **`GET /api/assessments/:id`**, **`GET /api/assessments/compare`** : API liste, détail, comparaison.
+- Pages **`/bilans`** et **`/bilans/[id]`** : liste + détail (cartes alignées sur l’écran Résultats).
+- **`plan_instances`** + **`/api/plan/snapshot`** / **`/api/plan/history`** : historique des **plans** (JSON `weeks`).
+- **`lib/future/cloud-types.ts`** : types bilan / liste / delta.
+- Progression plan : **`localStorage`** (`plan-progress-storage`) — V4 pourra synchroniser.
+
+### Schéma cible (extensions au schéma déjà migré)
+
+Les colonnes `source` et `previous_assessment_id` sont déjà en base. Pistes suivantes :
+
+| Table / colonne | Rôle |
+| --- | --- |
+| **`performance_tests`** (optionnel) | Une ligne par test au lieu du seul JSON `performance_snapshot`. |
+| **`retest_reminders`** (optionnel) | `user_id`, `anchor_assessment_id`, `due_at`, `channel` (`email`), `sent_at` — rappels opt-in RGPD. |
+
+**RLS** : `assessments` est couvert ; **`performance_tests`** / **`premium_reports`** — aligner sur `auth.uid() = user_id` (ou équivalent invité → compte).
+
+### API routes (V3)
+
+| Méthode | Route | Statut | Description |
+| --- | --- | --- | --- |
+| `POST` | `/api/assessments` | **Fait** | JWT Bearer + `{ profile, performance, source?, previousAssessmentId? }` → `computeScoreResult` → insert. |
+| `GET` | `/api/assessments` | **Fait** | Liste (`?limit=`) : id, dates, scores, limiteur, source, chaîne retest. |
+| `GET` | `/api/assessments/:id` | **Fait** | Détail + JSON complet (`profile_snapshot`, `breakdown`, etc.). |
+| `GET` | `/api/assessments/compare?from=&to=` | **Fait** | Delta scores + indicateur changement de limiteur (ordre chronologique auto). |
+
+### Écrans produit (V3)
+
+- **Mes bilans** (`/bilans`) : liste, courbes (≥ 2 bilans), **choix explicite du bilan de référence** pour retest + lien protocole aligné sur ce choix.
+- **Détail bilan** (`/bilans/[id]`) : cartes scoring + bloc progression si `previous_assessment_id`.
+- **Retest 30 j** : prolonger **`/next-test`** avec date du dernier bilan, CTA « lancer retest », checklist des tests à refaire (déjà partiellement côté `?focus=` sur Performances).
+
+---
+
+## V4 — Plans adaptatifs
+
+**Objectif** : le plan 4 semaines n’est pas figé : il **réagit** à la fréquence réelle, à un **feedback fatigue** simple, et aux **contraintes** mises à jour — tout en restant positionné **éducation / préparation**, pas prescription médicale.
+
+### État actuel dans le repo
+
+- **`plan_instances`** : snapshot JSON à chaque génération / sync ; empreinte **`fingerprint`** liée au profil + scoring.
+- Génération : **`generateFourWeekPlan`** + réhydratation ; pas encore de boucle « régénérer la semaine N » côté serveur avec règles métier versionnées.
+
+### Données cibles (V4)
+
+| Entité | Rôle |
+| --- | --- |
+| **`plan_instances`** (existant) | Version complète du plan à un instant T ; garder l’historique pour audit et rollback UX (« revenir à la version du … »). |
+| **`plan_week_feedback`** (nouvelle) | `plan_instance_id`, `week_index` (1–4), `fatigue` (`low` / `ok` / `high`), `sessions_completed` (int ou jsonb), `note` texte court, `created_at`. |
+| **`plan_adaptation_events`** (nouvelle, optionnelle) | Traçabilité : `from_plan_instance_id`, `to_plan_instance_id`, `reason` (`profile_change`, `weekly_feedback`, `manual_regen`), `payload` jsonb (règle appliquée). |
+
+La **régénération** peut rester une fonction TypeScript partagée (comme aujourd’hui) appelée depuis une **API route** après validation du feedback, pour éviter deux logiques divergentes.
+
+### Règles métier (indicatif, à affiner produit)
+
+- **Feedback fatigue « high »** sur la semaine courante : semaine suivante → volume −1 palier ou substitution « récup » dans les blocs (même moteur, paramètres différents).
+- **Changement de fréquence** dans le profil : nouveau `fingerprint` → nouveau plan (déjà le cas localement) ; V4 = persister l’événement et proposer diff UI.
+- **Mode « ≤ 3 j / semaine »** : flag profil ou plan → générateur restreint (déjà partiellement adressable par champs profil existants).
+
+### API routes cibles (V4)
+
+| Méthode | Route | Description |
+| --- | --- | --- |
+| `POST` | `/api/plan/week-feedback` | Lie au `plan_instance` courant (ou `client_sync_id`) + semaine ; upsert `plan_week_feedback`. |
+| `POST` | `/api/plan/adapt` | Entrée : id plan courant + optionnel changement profil ; sortie : nouveau snapshot + insert `plan_instances` + event log. |
+
+### Écrans produit (V4)
+
+- **Semaine courante** : mise en avant + rappel feedback fin de semaine.
+- **Ajustement guidé** : 1–3 questions (fatigue, séances faites, douleur → disclaimer + « consulter un pro » si douleur).
+- Lien **équivalences** contextuel (déjà présent sur le plan) enrichi selon `equipment` du profil sync.
+
+### Ordre d’implémentation suggéré (V3 → V4)
+
+1. **Auth + RLS** sur données déjà persistées (`purchases`, futur `assessments`, `plan_instances` en lecture utilisateur).
+2. **`POST/GET /api/assessments`**, détail, compare + pages **`/bilans`** (liste, courbes, retest) — fait ; raffinements retest e-mail **à faire**.
+3. **Retest** : champ `source` + lien UI depuis dernier bilan.
+4. **`plan_week_feedback`** + UI sur **`/plan`** puis **`/api/plan/adapt`** minimal (régénération serveur avec même générateur).
+
+---
+
+## Liens roadmap
+
+Vision produit par version : **`ROADMAP.md`** (sections V3 et V4). Ce fichier documente la **cible technique** et les **artefacts** à faire évoluer en parallèle.

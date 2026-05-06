@@ -14,6 +14,9 @@ import type {
 // Ré-export des types métier déjà canoniques côté app.
 export type { PerformanceInput, ScoreBreakdown, UserProfile };
 
+/** Origine du bilan — analytics & filtre historique (V3). */
+export type AssessmentSource = "manual" | "retest_30d" | "import";
+
 /** Bilan persisté = snapshot du résultat moteur + lien utilisateur. */
 export interface Assessment {
   id: string;
@@ -29,6 +32,9 @@ export interface Assessment {
   breakdown: ScoreBreakdown;
   goals4Weeks: string[];
   performanceSnapshot: PerformanceInput;
+  /** V3 : chaîne avant/après et segmentation retest. */
+  source?: AssessmentSource;
+  previousAssessmentId?: string | null;
 }
 
 /** Rapport premium : JSON servi à l’UI + PDF optionnel. */
@@ -63,5 +69,56 @@ export interface Purchase {
   amountCents: number;
   currency: string;
   status: PurchaseStatus;
+  createdAt: string;
+}
+
+/** Ligne liste « Mes bilans » sans tout le JSON breakdown (V3). */
+export interface AssessmentListItem {
+  id: string;
+  createdAt: string;
+  hybridScore: number;
+  athleticAge: number;
+  reliabilityPct: number;
+  profileLabel: string;
+  limiter: string;
+  source?: AssessmentSource;
+  previousAssessmentId?: string | null;
+}
+
+/** Delta affiché comparateur avant → après (V3). */
+export interface AssessmentCompareDelta {
+  hybridScoreDelta: number;
+  athleticAgeDelta: number;
+  reliabilityPctDelta: number;
+  limiterChanged: boolean;
+  fromAssessmentId: string;
+  toAssessmentId: string;
+}
+
+/** Feedback fin de semaine pour adaptation plan (V4). */
+export type PlanWeekFatigue = "low" | "ok" | "high";
+
+export interface PlanWeekFeedback {
+  id: string;
+  planInstanceId: string;
+  weekIndex: number;
+  fatigue: PlanWeekFatigue;
+  sessionsCompletedCount?: number;
+  note: string | null;
+  createdAt: string;
+}
+
+/** Traçabilité régénération plan (V4). */
+export type PlanAdaptationReason =
+  | "profile_change"
+  | "weekly_feedback"
+  | "manual_regen";
+
+export interface PlanAdaptationEvent {
+  id: string;
+  fromPlanInstanceId: string | null;
+  toPlanInstanceId: string;
+  reason: PlanAdaptationReason;
+  payload: Record<string, unknown> | null;
   createdAt: string;
 }

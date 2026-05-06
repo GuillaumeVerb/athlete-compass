@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, BookOpen, ClipboardList, Gauge, Home, Layers, LineChart, Lock, Sparkles } from "lucide-react";
+import { Activity, BookOpen, ClipboardList, Gauge, History, Home, Layers, LineChart, Lock, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -10,6 +10,7 @@ const links = [
   { href: "/profile", label: "Profil", icon: ClipboardList },
   { href: "/performances", label: "Performances", icon: Activity },
   { href: "/results", label: "Résultats", icon: Gauge },
+  { href: "/bilans", label: "Mes bilans", icon: History },
   { href: "/plan", label: "Plan 4 sem.", icon: Layers },
   { href: "/report", label: "Rapport", icon: Lock },
   { href: "/tests", label: "Protocoles", icon: BookOpen },

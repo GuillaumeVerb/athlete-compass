@@ -1,34 +1,19 @@
 import type { AthleticProfileId, EquipmentKey, ScoreResult, UserProfile } from "@/lib/types";
+import { buildSessionBlocks } from "@/lib/plans/session-blocks";
+import { defaultPerformanceKeysForSessionKind } from "@/lib/plans/session-performance-links";
+import type {
+  PlanSession,
+  PlanWeek,
+  SessionKind,
+} from "@/lib/plans/plan-types";
 
-export type SessionKind =
-  | "force_upper"
-  | "force_lower"
-  | "zone2"
-  | "metcon_short"
-  | "hybrid_core"
-  | "test_retest"
-  | "recovery_active";
-
-export interface PlanSession {
-  title: string;
-  tags: string[];
-  kind: SessionKind;
-  durationMin: number;
-  sessionObjective: string;
-  mainMoves: string[];
-  shortVersion: string;
-  substitution?: string;
-}
-
-export interface PlanWeek {
-  week: number;
-  weekTheme: string;
-  objective: string;
-  objectiveChecks: string[];
-  focus: string;
-  coherencePct: number;
-  sessions: PlanSession[];
-}
+export type {
+  PlanSession,
+  PlanSessionBlock,
+  PlanSessionExercise,
+  PlanWeek,
+  SessionKind,
+} from "@/lib/plans/plan-types";
 
 type Bias = "endurance" | "strength" | "muscle" | "recovery" | "balanced";
 
@@ -70,46 +55,15 @@ const KIND_LABEL: Record<SessionKind, string> = {
   recovery_active: "Récupération active",
 };
 
-function baseSession(kind: SessionKind, profile: UserProfile): PlanSession {
+function baseSession(
+  kind: SessionKind,
+  profile: UserProfile,
+  weekNum: number,
+): PlanSession {
   const title = `Séance — ${KIND_LABEL[kind]}`;
   const baseDur =
     kind === "zone2" ? 55 : kind === "recovery_active" ? 35 : kind === "test_retest" ? 40 : 50;
   const durationMin = dialDuration(baseDur, profile);
-
-  const moves: Record<SessionKind, string[]> = {
-    force_upper: [
-      "Tractions / variantes assistées",
-      "Développé militaire ou poussee inclinée",
-      "Rowing haltère ou tirage horizontal",
-    ],
-    force_lower: [
-      "Squat pattern (front / back selon confort)",
-      "RDL ou soulevé de terre technique",
-      "Fentes ou split squat contrôlé",
-    ],
-    zone2: [
-      "20–45 min conversation possible (rameur, vélo, ski, marche inclinée)",
-      "Cardio continu, même allure du début à la fin",
-    ],
-    metcon_short: [
-      "Bloc 8–12 min : 2–3 mouvements modérés",
-      "Garde 2 répétitions en réserve sur la dernière série",
-    ],
-    hybrid_core: [
-      "Portage léger ou farmer carry",
-      "Gainage hollow / plank dynamique",
-      "Finisher court cardio + core",
-    ],
-    test_retest: [
-      "Test prioritaire du moment (ex. 500 m rameur ou 10 min tempo)",
-      "Noter sensations + RPE pour ajuster la suite",
-    ],
-    recovery_active: [
-      "Marche facile ou vélo très léger",
-      "Mobilité hanches / thorax",
-      "Respiration + étirements doux",
-    ],
-  };
 
   const objectives: Record<SessionKind, string> = {
     force_upper: "Qualité de tirage et de poussée — volume modéré.",
@@ -141,14 +95,17 @@ function baseSession(kind: SessionKind, profile: UserProfile): PlanSession {
     recovery_active: ["Recovery"],
   };
 
+  const blocks = buildSessionBlocks(kind, profile, weekNum);
+
   return {
     title,
     tags: tags[kind],
     kind,
     durationMin,
     sessionObjective: objectives[kind],
-    mainMoves: moves[kind],
+    blocks,
     shortVersion: short[kind],
+    relatedPerformanceKeys: defaultPerformanceKeysForSessionKind(kind),
   };
 }
 
@@ -186,6 +143,62 @@ function substitutionFor(
 function personalizeSession(s: PlanSession, profile: UserProfile): PlanSession {
   const sub = substitutionFor(s.kind, profile);
   return { ...s, substitution: sub };
+}
+
+/** Données legacy (mainMoves) ou snapshots sans `blocks`. */
+function ensureSessionBlocks(
+  sess: PlanSession,
+  profile: UserProfile,
+  weekNum: number,
+): PlanSession {
+  if (Array.isArray(sess.blocks) && sess.blocks.length > 0) {
+    return sess;
+  }
+  const withLegacy = sess as PlanSession & { mainMoves?: string[] };
+  if (withLegacy.mainMoves?.length) {
+    return {
+      ...sess,
+      blocks: [
+        {
+          label: "Exercices principaux",
+          exercises: withLegacy.mainMoves.map((text) => ({
+            name: text,
+            prescription: "",
+          })),
+        },
+      ],
+    };
+  }
+  return {
+    ...sess,
+    blocks: buildSessionBlocks(sess.kind, profile, weekNum),
+  };
+}
+
+function withRelatedPerformanceKeys(sess: PlanSession): PlanSession {
+  if (
+    Array.isArray(sess.relatedPerformanceKeys) &&
+    sess.relatedPerformanceKeys.length > 0
+  ) {
+    return sess;
+  }
+  return {
+    ...sess,
+    relatedPerformanceKeys: defaultPerformanceKeysForSessionKind(sess.kind),
+  };
+}
+
+/** Snapshots localStorage : blocs + liens perfs à jour après changement de schéma. */
+export function rehydratePlanWeeks(
+  weeks: PlanWeek[],
+  profile: UserProfile,
+): PlanWeek[] {
+  return weeks.map((w) => ({
+    ...w,
+    sessions: w.sessions.map((s) =>
+      withRelatedPerformanceKeys(ensureSessionBlocks(s, profile, w.week)),
+    ),
+  }));
 }
 
 function rotateKinds(base: SessionKind[], bias: Bias, week: number): SessionKind[] {
@@ -296,17 +309,25 @@ export function sessionKindLabelFr(kind: SessionKind): string {
 export function generateFourWeekPlan(
   profile: UserProfile,
   result: ScoreResult,
+  genOpts?: { forceRecoveryBias?: boolean },
 ): PlanWeek[] {
-  const bias = biasFromProfile(result.profileId);
+  const bias: Bias = genOpts?.forceRecoveryBias
+    ? "recovery"
+    : biasFromProfile(result.profileId);
   const maxSessions = capDays(profile);
 
   return WEEK_BLUEPRINTS.map((bp, idx) => {
     const kinds = tweakWeekKinds(idx, bp.kinds, bias).slice(0, maxSessions);
-    const sessions = kinds.map((kind) =>
-      personalizeSession(baseSession(kind, profile), profile),
-    );
+    const weekNum = idx + 1;
+    const sessions = kinds
+      .map((kind) =>
+        personalizeSession(baseSession(kind, profile, weekNum), profile),
+      )
+      .map((sess) =>
+        withRelatedPerformanceKeys(ensureSessionBlocks(sess, profile, weekNum)),
+      );
     return {
-      week: idx + 1,
+      week: weekNum,
       weekTheme: bp.weekTheme,
       objective: bp.objective,
       objectiveChecks: bp.checks,

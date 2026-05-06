@@ -46,3 +46,8 @@ export function appBaseUrl(): string {
   if (vercel) return `https://${vercel.replace(/\/$/, "")}`;
   return "http://localhost:3000";
 }
+
+/** Cron rappels retest (`POST /api/cron/retest-reminders`) — optionnel. */
+export function isCronSecretConfigured(): boolean {
+  return Boolean(process.env.CRON_SECRET?.trim());
+}

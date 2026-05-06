@@ -36,6 +36,7 @@ const main = [
 ];
 
 const moreLinks = [
+  { href: "/bilans", label: "Mes bilans" },
   { href: "/plan", label: "Plan 4 sem." },
   { href: "/report", label: "Rapport" },
   { href: "/tests", label: "Protocoles" },

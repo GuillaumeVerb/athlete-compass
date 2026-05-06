@@ -21,7 +21,7 @@ Guide technique pas à pas : **[`V2_SETUP.md`](V2_SETUP.md)**.
 
 ## Déjà couvert côté code / schéma
 
-- Migrations **`001` / `002` / `003`** (ou `supabase db push`) : `purchases`, snapshot checkout, **`premium_reports`**.
+- Migrations **`001` … `005`** (ou `supabase db push`) : `purchases`, snapshot checkout, **`premium_reports`**, **`plan_instances`** (+ `user_id` / `purchase_id`).
 - Variables Supabase dans `.env` / hébergeur (hors Stripe/Resend : voir `V2_SETUP`).
 
 ---

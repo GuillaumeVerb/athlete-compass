@@ -2,6 +2,12 @@ import type { PerformanceInput } from "@/lib/types";
 import { parseFarmerCarry, parseMmSs } from "@/lib/scoring/parse";
 import { PERFORMANCE_FORM_FIELDS } from "@/lib/performance/performance-form-fields";
 
+const CARRY_KEYS = new Set<keyof PerformanceInput>([
+  "farmerCarry",
+  "sandbagCarry",
+  "sledCarry",
+]);
+
 /**
  * Valide les champs texte du formulaire Performances (onglet Perf / `/performances`)
  * et produit un `PerformanceInput` (champs vides ignorés).
@@ -26,13 +32,12 @@ export function buildPerformanceInputFromForm(
         };
       }
       (out as Record<string, string>)[f.key] = raw;
-    } else if (f.type === "text" && f.key === "farmerCarry") {
+    } else if (f.type === "text" && CARRY_KEYS.has(f.key)) {
       const fc = parseFarmerCarry(raw);
       if (!fc || fc.meters <= 0 || fc.seconds < 0) {
         return {
           ok: false,
-          error:
-            "Farmer carry : format attendu 40/35 (mètres / secondes) ou 40 m 35 s.",
+          error: `« ${f.title} » : format mètres/secones attendu (ex. 40/35).`,
         };
       }
       (out as Record<string, string>)[f.key] = raw;
@@ -41,16 +46,32 @@ export function buildPerformanceInputFromForm(
       if (!Number.isFinite(n)) {
         return { ok: false, error: `Nombre invalide pour « ${f.title} ».` };
       }
-      if (f.key === "pullups" && (n < 0 || !Number.isInteger(n))) {
-        return { ok: false, error: "Tractions : entre un entier ≥ 0." };
+      const kind = f.numberKind ?? "kg";
+      if (kind === "reps") {
+        if (n < 0 || !Number.isInteger(n)) {
+          return {
+            ok: false,
+            error: `« ${f.title} » : entre un entier ≥ 0.`,
+          };
+        }
+        (out as Record<string, number>)[f.key] = n;
+      } else if (kind === "cm") {
+        if (!Number.isInteger(n) || n < 25 || n > 150) {
+          return {
+            ok: false,
+            error: `« ${f.title} » : entre une hauteur entière entre 25 et 150 cm.`,
+          };
+        }
+        (out as Record<string, number>)[f.key] = n;
+      } else {
+        if (n <= 0) {
+          return {
+            ok: false,
+            error: `« ${f.title} » : entre un poids strictement positif (kg).`,
+          };
+        }
+        (out as Record<string, number>)[f.key] = n;
       }
-      if (f.key !== "pullups" && n <= 0) {
-        return {
-          ok: false,
-          error: `« ${f.title} » : entre un poids strictement positif (kg).`,
-        };
-      }
-      (out as Record<string, number>)[f.key] = n;
     } else {
       (out as Record<string, string>)[f.key] = raw;
     }

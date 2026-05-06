@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { PerformanceForm } from "@/components/forms/performance-form";
 import { MedicalDisclaimer } from "@/components/disclaimer";
 
@@ -13,7 +14,13 @@ export default function PerformancesPage() {
           diminuent la fiabilité du score mais restent autorisés.
         </p>
       </div>
-      <PerformanceForm initial={null} />
+      <Suspense
+        fallback={
+          <div className="h-64 animate-pulse rounded-2xl bg-surface-elevated" />
+        }
+      >
+        <PerformanceForm initial={null} />
+      </Suspense>
       <MedicalDisclaimer />
     </div>
   );

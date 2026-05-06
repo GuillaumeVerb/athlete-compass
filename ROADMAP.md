@@ -53,6 +53,7 @@ Vision : un **diagnostic de performance hybride** court (âge athlétique, Hybri
 | **Features** | Compte utilisateur ; liste des bilans datés ; courbes âge athlétique / Hybrid Score ; comparaison avant-après ; protocole de **retest 30 jours** guidé ; rappels optionnels (email). |
 | **Écrans** | Dashboard “Mes bilans” ; détail d’un bilan ; lancement retest ; synthèse progression. |
 | **Données** | Historique `assessments` + `performance_tests` liés ; éventuellement snapshots de profil. |
+| **Architecture cible** | [`docs/FUTURE_ARCHITECTURE.md`](docs/FUTURE_ARCHITECTURE.md) — section *V3 — Bilans, historique et retest*. |
 | **Complexité technique** | Moyenne — modèle de données versionné, migrations, requêtes temporelles. |
 | **Risques** | Coût stockage ; complexité UX (trop de chiffres sans narration). |
 | **Critères de succès** | % utilisateurs avec ≥ 2 bilans à 60 jours ; NPS ou enquête courte post-retest. |
@@ -68,6 +69,7 @@ Vision : un **diagnostic de performance hybride** court (âge athlétique, Hybri
 | **Features** | Plan ajusté aux contraintes (fréquence, salle, jambes, etc.) ; ajustement hebdo (feedback fatigue simple) ; substitutions d’exercices ; mode “je garde mon programme” (recommandations ponctuelles) ; mode “≤ 3 jours / semaine”. |
 | **Écrans** | Semaine courante du plan ; check séances ; ajustement guidé ; lien vers équivalences contextuelles. |
 | **Données** | Entités `plan_instance`, logs de complétion, règles de régénération (serveur ou edge). |
+| **Architecture cible** | [`docs/FUTURE_ARCHITECTURE.md`](docs/FUTURE_ARCHITECTURE.md) — section *V4 — Plans adaptatifs*. |
 | **Complexité technique** | Élevée — logique métier + persistance + éviter les contradictions médicales / surentraînement (positionnement éducation, pas prescription). |
 | **Risques** | Attente “coach IA” vs réalité ; charge support si promesses trop fortes. |
 | **Critères de succès** | Taux d’activation plan ; séances cochées / semaine ; satisfaction enquête ; évolution score à 8 semaines. |

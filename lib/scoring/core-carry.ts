@@ -32,15 +32,44 @@ export function scoreHollowHold(seconds: number, sex: Sex): number {
   return piecewiseScore(t, pts, false);
 }
 
+/** L-sit — plus long = mieux (parallèles). */
+export function scoreLSitHold(seconds: number, sex: Sex): number {
+  const t = seconds + (sex === "femme" ? 5 : 0);
+  const pts: [number, number][] = [
+    [8, 35],
+    [15, 52],
+    [25, 68],
+    [35, 80],
+    [45, 90],
+    [60, 97],
+  ];
+  return piecewiseScore(t, pts, false);
+}
+
 export function coreCarryScore(
-  perf: { farmerCarry?: string; hollowHold?: string },
+  perf: {
+    farmerCarry?: string;
+    sandbagCarry?: string;
+    sledCarry?: string;
+    hollowHold?: string;
+    lSitHold?: string;
+  },
   sex: Sex,
 ): number | null {
   const parts: number[] = [];
-  const fc = parseFarmerCarry(perf.farmerCarry);
-  if (fc) parts.push(scoreFarmerCarry(fc.meters, fc.seconds, sex));
+  const carries: (
+    | "farmerCarry"
+    | "sandbagCarry"
+    | "sledCarry"
+  )[] = ["farmerCarry", "sandbagCarry", "sledCarry"];
+  for (const key of carries) {
+    const fc = parseFarmerCarry(perf[key]);
+    if (fc) parts.push(scoreFarmerCarry(fc.meters, fc.seconds, sex));
+  }
   const h = parseMmSs(perf.hollowHold);
   if (h != null) parts.push(scoreHollowHold(h, sex));
+  const ls = parseMmSs(perf.lSitHold);
+  if (ls != null) parts.push(scoreLSitHold(ls, sex));
   if (parts.length === 0) return null;
   return Math.round(parts.reduce((a, b) => a + b, 0) / parts.length);
 }
