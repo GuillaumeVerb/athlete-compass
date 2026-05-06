@@ -1,14 +1,41 @@
 /**
  * Crée (ou réutilise) les 3 prix Stripe alignés sur l’app — à lancer en local :
  *
- *   STRIPE_SECRET_KEY=sk_test_xxx pnpm stripe:seed-catalog
+ *   pnpm stripe:seed-catalog
+ *
+ * Charge `STRIPE_SECRET_KEY` depuis l’environnement ou depuis le fichier `.env`
+ * à la racine du repo (sans afficher la clé).
  *
  * Affiche les lignes à copier dans .env / Vercel (STRIPE_PRICE_*).
  * Idempotent : `lookup_key` stable par offre (ne duplique pas si déjà créé).
  */
 /* eslint-disable no-console */
 
+const fs = require("fs");
+const path = require("path");
 const Stripe = require("stripe");
+
+/** Charge .env à la racine (KEY=value) sans écraser les variables déjà définies. */
+function loadDotEnv() {
+  const envPath = path.join(process.cwd(), ".env");
+  if (!fs.existsSync(envPath)) return;
+  const raw = fs.readFileSync(envPath, "utf8");
+  for (const line of raw.split("\n")) {
+    const t = line.trim();
+    if (!t || t.startsWith("#")) continue;
+    const eq = t.indexOf("=");
+    if (eq <= 0) continue;
+    const key = t.slice(0, eq).trim();
+    let val = t.slice(eq + 1).trim();
+    if (
+      (val.startsWith('"') && val.endsWith('"')) ||
+      (val.startsWith("'") && val.endsWith("'"))
+    ) {
+      val = val.slice(1, -1);
+    }
+    if (process.env[key] === undefined) process.env[key] = val;
+  }
+}
 
 const CATALOG = [
   {
@@ -57,9 +84,12 @@ async function ensurePrice(stripe, item) {
 }
 
 async function main() {
+  loadDotEnv();
   const key = process.env.STRIPE_SECRET_KEY?.trim();
   if (!key) {
-    console.error("Manquant : STRIPE_SECRET_KEY (sk_test_… ou sk_live_…).");
+    console.error(
+      "Manquant : STRIPE_SECRET_KEY (sk_test_… ou sk_live_…). Ajoute-la dans .env ou exporte-la.",
+    );
     process.exit(1);
   }
 
