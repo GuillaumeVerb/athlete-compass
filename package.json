@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "stripe:listen": "stripe listen --forward-to localhost:3000/api/webhooks/stripe",
+    "stripe:seed-catalog": "node scripts/stripe-seed-catalog.cjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },
