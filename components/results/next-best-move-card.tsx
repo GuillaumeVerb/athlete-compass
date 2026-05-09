@@ -13,7 +13,8 @@ export function NextBestMoveCard({ plan }: { plan: NextBestMovePlan }) {
       <CardHeader>
         <CardTitle className="text-base">Next Best Move</CardTitle>
         <CardDescription>
-          La prochaine action la plus rentable pour ton limiteur actuel.
+          La prochaine action la plus rentable pour ton limiteur — pas un
+          programme médical.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">

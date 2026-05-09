@@ -16,7 +16,7 @@ const steps = [
   {
     step: "03",
     title: "Aperçu & prochaine action",
-    body: "Âge athlétique, Hybrid Score pondéré par ton objectif, radar, limiteur et une action simple — pas un carnet d’entraînements.",
+    body: "Âge athlétique, Hybrid Score pondéré par ton objectif, radar, limiteur, fiabilité du score et Next Best Move — pas un carnet d'entraînements.",
     icon: Sparkles,
   },
 ];
@@ -35,9 +35,12 @@ export function HowItWorks() {
           Trois étapes, un fil clair
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-muted">
-          Trois étapes courtes — profil, performances mesurables, synthèse
-          actionnable. Pas un carnet d&apos;entraînements : un fil pour décider
-          quoi ajuster ensuite.
+          Découvre ton âge athlétique, ton score hybride (Hybrid Score) et le plan
+          minimal pour progresser — en trois étapes courtes.
+        </p>
+        <p className="mx-auto mt-2 max-w-2xl text-center text-sm leading-relaxed text-muted">
+          Profil, performances mesurables, synthèse actionnable. Pas un carnet
+          d&apos;entraînements : un fil pour décider quoi ajuster ensuite.
         </p>
         <ol className="mt-14 grid gap-8 md:grid-cols-3">
           {steps.map(({ step, title, body, icon: Icon }) => (

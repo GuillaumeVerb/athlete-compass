@@ -74,6 +74,10 @@ Dans Cursor/Codex, exécute un prompt à la fois. Après chaque prompt :
 - vérifie visuellement les écrans principaux ;
 - ne passe au prompt suivant que si la base est stable.
 
+## Suivi (agrégat + dossier `doc/`)
+
+Références croisées : racine **`athlete_compass_prompts_ordre_complet.md`** (prompts 00–16 agrégés : daily, readiness, coach, body progress, dette, projection âge, mobile, **§13 hub `/daily`**, **§14 intégrations** documentées dans `docs/integrations.md`, **§15** évolution V2) et ce dossier **`doc/`** (phases 1–5, prompts 01–12). **`doc/09_PROMPT_QA_TESTS_RESPONSIVE.md`** : QA transversale (mobile, formulaires, graphiques bilans, `/daily`) — voir `README.md` section QA. **`doc/10_PROMPT_COPYWRITING_CONFORMITE.md`** : wording landing (`how-it-works`), cartes résultats (`limiter-card`, intro `results-client`), termes produit (Hybrid Score, fiabilité, Next Best Move, Performance Gap). **`doc/11_PROMPT_ROADMAP_V2_V6.md`** : **`ROADMAP.md`** + renvoi dans `README.md`. Passe **`doc/08_PROMPT_PLAN_4_SEMAINES.md`** (tags, limiteur, MEP) et **`doc/06_PROMPT_DESIGN_UX_PREMIUM.md`** (cartes résultats / premium) : plan (`week-plan`, `plan-client`, `generate-plan`) + polish visuel ciblé. **`doc/07_PROMPT_PREMIUM_PRICING.md`** (simulation checkout / rapport) et **`doc/12_PROMPT_SUPABASE_STRIPE_FUTUR.md`** : pricing + `FUTURE_ARCHITECTURE.md` + `.env.example`.
+
 ## Phrase à répéter à Codex/Cursor si l’agent dérive
 
 > Ne construis pas une app fitness complète. Construis une démo SaaS premium de diagnostic de performance : âge athlétique, Hybrid Score, profil, limiteur, Next Best Move et plan minimal 4 semaines.

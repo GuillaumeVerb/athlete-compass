@@ -98,9 +98,7 @@ export default function Home() {
           <p className="mt-4 leading-relaxed text-muted">
             Athlete Compass ne remplace pas ton programme. Il t&apos;aide à
             comprendre si ton entraînement construit vraiment le corps que tu
-            veux : fort, endurant, résistant et athlétique — avec un diagnostic
-            de performance court, des tests standardisés et un plan minimal sur
-            4 semaines en premium (démo).
+            veux : fort, endurant, résistant et athlétique.
           </p>
           <div className="mt-8 flex justify-center">
             <MedicalDisclaimer />

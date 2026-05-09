@@ -25,7 +25,7 @@ export default async function ReportPage() {
     : [null, null];
 
   return (
-    <div className="space-y-10">
+    <div className="min-w-0 space-y-10">
       <div>
         <h1 className="text-display text-3xl font-semibold text-foreground">
           Ton rapport complet
@@ -33,7 +33,7 @@ export default async function ReportPage() {
         {unlock ? (
           <div
             role="status"
-            className="mt-4 max-w-3xl rounded-2xl border border-neon/40 bg-neon/10 px-4 py-3 text-sm leading-relaxed text-foreground/95"
+            className="mt-4 max-w-3xl min-w-0 break-words rounded-2xl border border-neon/40 bg-neon/10 px-4 py-3 text-sm leading-relaxed text-foreground/95"
           >
             <strong className="text-neon">Accès rapport activé.</strong> Achat
             enregistré : {productKeyLabelFr(unlock.productKey)}. Ci-dessous :{" "}
@@ -107,30 +107,37 @@ export default async function ReportPage() {
           <LockedCard
             title="Âge par système"
             description="Répartition cardio / force / résilience estimée."
+            teaser="Cardio ~70 · Force ~58 · Endurance ~64 (aperçu fictif)"
           />
           <LockedCard
             title="Performance Gap"
             description="Écart entre ton niveau actuel et ton plafond hybride."
+            teaser="Δ ciblé ≈ +10 pts sur le pilier prioritaire (ex.)"
           />
           <LockedCard
             title="Limiteur principal (détail)"
             description="Analyse approfondie + priorités d’entraînement."
+            teaser="Priorité #1 : volume aérobie contrôlé (ex.)"
           />
           <LockedCard
             title="Objectifs 4 semaines"
             description="Version détaillée avec charges, volumes et retests."
+            teaser="S1 base → S2 intensité → S3 consolidation → S4 retest"
           />
           <LockedCard
             title="Plan minimal efficace"
             description="Semaines structurées avec progressions guidées."
+            teaser="3–5 séances / sem. · tags Force / Z2 / Conditioning…"
           />
           <LockedCard
             title="Équivalences machines"
             description="Traductions rameur, SkiErg, vélo, tapis incliné."
+            teaser="Rameur 500 m ↔ SkiErg 500 m ↔ Bike tempo (logique)"
           />
           <LockedCard
             title="Retest 30 jours & export"
             description="Cadence de retest et export PDF du rapport — prévu après intégration paiement."
+            teaser="J+30 · même protocole court · PDF étendu (V2+)"
           />
         </div>
       )}
@@ -160,7 +167,7 @@ export default async function ReportPage() {
           </div>
         </section>
       ) : (
-        <div>
+        <div id="debloquer">
           <h2 className="text-display mb-4 text-xl font-semibold text-foreground">
             Débloquer
           </h2>
@@ -169,23 +176,27 @@ export default async function ReportPage() {
               title="Bilan complet"
               price="9 €"
               productKey="bilan_9"
+              fallbackHref="/pricing"
               features={[
                 "Rapport détaillé",
                 "Âge athlétique",
                 "Hybrid Score",
                 "Profil athlète",
                 "Prochain test recommandé",
+                "Limiteur principal résumé",
               ]}
             />
             <PricingCard
               title="Plan 4 semaines"
               price="19 €"
               productKey="plan_19"
+              fallbackHref="/pricing"
               features={[
                 "Objectifs 4 semaines",
-                "Plan d’entraînement",
+                "Plan minimal efficace",
                 "Séances détaillées",
                 "Cohérence hebdomadaire",
+                "Protocole de retest",
               ]}
             />
             <PricingCard
@@ -193,6 +204,7 @@ export default async function ReportPage() {
               price="29 €"
               highlight
               productKey="pack_29"
+              fallbackHref="/pricing"
               features={[
                 "Tout du bilan complet",
                 "Tout du plan 4 semaines",

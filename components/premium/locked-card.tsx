@@ -5,10 +5,13 @@ export function LockedCard({
   title,
   description,
   highlight,
+  teaser,
 }: {
   title: string;
   description?: string;
   highlight?: boolean;
+  /** Une ligne d’aperçu floue / chiffrée — valeur sans révéler le contenu (doc/07). */
+  teaser?: string;
 }) {
   return (
     <div
@@ -33,6 +36,11 @@ export function LockedCard({
           {description ? (
             <p className="mt-2 text-sm leading-relaxed text-muted">
               {description}
+            </p>
+          ) : null}
+          {teaser ? (
+            <p className="mt-3 rounded-lg border border-border/50 bg-background/40 px-2.5 py-1.5 font-mono text-[11px] tracking-tight text-muted/80">
+              {teaser}
             </p>
           ) : null}
           <p className="mt-3 text-xs text-muted/70">

@@ -44,8 +44,8 @@ export function LandingHero() {
   return (
     <section className="relative overflow-hidden mesh-bg">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-neon/10 via-transparent to-transparent" />
-      <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <div className="flex items-center gap-2">
+      <header className="relative z-10 mx-auto flex min-w-0 max-w-6xl items-center justify-between gap-4 px-6 py-6">
+        <div className="flex min-w-0 items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-neon/35 bg-neon/15 text-neon">
             <Zap className="h-5 w-5" />
           </span>
@@ -66,11 +66,50 @@ export function LandingHero() {
           <Link href="/pricing" className="transition-colors hover:text-foreground">
             Tarifs
           </Link>
+          <Link href="/blog" className="transition-colors hover:text-foreground">
+            Blog
+          </Link>
         </nav>
       </header>
 
-      <div className="relative z-10 mx-auto grid max-w-6xl gap-12 px-6 pb-24 pt-4 lg:grid-cols-2 lg:items-center">
-        <div>
+      <nav
+        className="relative z-10 mx-auto flex max-w-6xl gap-2 overflow-x-auto px-6 pb-4 md:hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        aria-label="Navigation rapide"
+      >
+        <a
+          href="#how"
+          className="shrink-0 rounded-full border border-border bg-surface/60 px-3 py-1.5 text-xs text-muted transition hover:border-neon/35 hover:text-foreground"
+        >
+          Comment ça marche
+        </a>
+        <a
+          href="#features"
+          className="shrink-0 rounded-full border border-border bg-surface/60 px-3 py-1.5 text-xs text-muted transition hover:border-neon/35 hover:text-foreground"
+        >
+          Fonctionnalités
+        </a>
+        <a
+          href="#about"
+          className="shrink-0 rounded-full border border-border bg-surface/60 px-3 py-1.5 text-xs text-muted transition hover:border-neon/35 hover:text-foreground"
+        >
+          À propos
+        </a>
+        <Link
+          href="/pricing"
+          className="shrink-0 rounded-full border border-border bg-surface/60 px-3 py-1.5 text-xs text-muted transition hover:border-neon/35 hover:text-foreground"
+        >
+          Tarifs
+        </Link>
+        <Link
+          href="/blog"
+          className="shrink-0 rounded-full border border-neon/25 bg-neon/10 px-3 py-1.5 text-xs font-medium text-neon transition hover:bg-neon/15"
+        >
+          Blog
+        </Link>
+      </nav>
+
+      <div className="relative z-10 mx-auto grid min-w-0 max-w-6xl gap-12 px-6 pb-24 pt-4 lg:grid-cols-2 lg:items-center">
+        <div className="min-w-0">
           <div className="flex flex-wrap gap-2 mb-6">
             <span className="inline-flex items-center gap-1 rounded-full border border-neon/30 bg-neon/10 px-3 py-1 text-xs font-medium text-neon">
               <Timer className="h-3.5 w-3.5" /> Rapide
@@ -88,8 +127,14 @@ export function LandingHero() {
             <span className="text-neon">âge athlétique</span>.
           </h1>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted">
-            Découvre ton niveau, tes forces, tes faiblesses et le plan minimal
-            pour devenir un athlète hybride.
+            Rameur, course, force : saisis quelques repères honnêtes et obtiens ton{" "}
+            <span className="text-foreground/90">Hybrid Score</span>, ton limiteur
+            principal, ton écart de performance et un plan minimal sur 4 semaines —
+            sans montre connectée.
+          </p>
+          <p className="mt-3 max-w-xl text-sm italic leading-relaxed text-muted">
+            Tu cumules salle, cardio ou metcons : ce bilan te dit si tu es plutôt
+            moteur court, diesel, fort mais fragile au long — ou déjà équilibré.
           </p>
           <div className="mt-4">
             <MedicalDisclaimer />
@@ -97,7 +142,7 @@ export function LandingHero() {
           <div className="mt-8 flex flex-wrap gap-4">
             <Button asChild size="lg" className="rounded-2xl px-7">
               <Link href="/profile">
-                Commencer mon bilan gratuit
+                Calculer mon âge athlétique
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -106,15 +151,15 @@ export function LandingHero() {
             </Button>
           </div>
           <p className="mt-5 max-w-xl text-sm font-medium text-foreground/90">
-            Gratuit. Rapide. Sans montre connectée.
+            Gratuit pour le cœur du diagnostic. Rapide à remplir.
           </p>
           <p className="mt-3 max-w-xl text-sm text-muted">
-            Démo V1 — bilan court pour cadrer où tu en es avant d&apos;optimiser
-            l&apos;entraînement.
+            Démo V1 — utile avant de choisir un bloc HYROX, CrossFit ou une prépa
+            hybride : tu sais quoi tester en priorité.
           </p>
         </div>
 
-        <div className="relative lg:pl-4">
+        <div className="relative min-w-0 lg:pl-4">
           <HeroVisual />
         </div>
       </div>

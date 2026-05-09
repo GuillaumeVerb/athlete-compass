@@ -2,14 +2,32 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, BookOpen, ClipboardList, Gauge, History, Home, Layers, LineChart, Lock, Sparkles } from "lucide-react";
+import {
+  Activity,
+  BookOpen,
+  CalendarDays,
+  ClipboardList,
+  Gauge,
+  History,
+  Home,
+  Layers,
+  LineChart,
+  Lock,
+  Newspaper,
+  PersonStanding,
+  Sparkles,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/", label: "Accueil", icon: Home },
+  { href: "/blog", label: "Blog", icon: Newspaper },
   { href: "/profile", label: "Profil", icon: ClipboardList },
   { href: "/performances", label: "Performances", icon: Activity },
+  /** Hub post-onboarding (prompt agrégé 13) : après les perfs, l’usage quotidien passe par ici. */
+  { href: "/daily", label: "Aujourd'hui", icon: CalendarDays },
   { href: "/results", label: "Résultats", icon: Gauge },
+  { href: "/body-progress", label: "Corps", icon: PersonStanding },
   { href: "/bilans", label: "Mes bilans", icon: History },
   { href: "/plan", label: "Plan 4 sem.", icon: Layers },
   { href: "/report", label: "Rapport", icon: Lock },

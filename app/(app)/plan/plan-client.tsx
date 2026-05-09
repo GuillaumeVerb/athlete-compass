@@ -16,6 +16,7 @@ import {
   syncPlanWeeksToCloud,
 } from "@/lib/plans/sync-plan-cloud-client";
 import { MedicalDisclaimer } from "@/components/disclaimer";
+import { MobileStickyQuickBar } from "@/components/layout/mobile-sticky-quick-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,6 +50,7 @@ export function PlanClient() {
   }>({ status: "idle", rows: [] });
   const [hasSession, setHasSession] = useState(false);
   const [planInstanceId, setPlanInstanceId] = useState<string | null>(null);
+  const [planLimiter, setPlanLimiter] = useState("");
 
   useEffect(() => {
     const unsubSession = subscribeSupabaseSession(setHasSession);
@@ -57,6 +59,7 @@ export function PlanClient() {
       const profile = loadProfile() ?? DEMO_PROFILE;
       const perf = loadPerformance() ?? DEMO_PERFORMANCE;
       const result = computeScoreResult(profile, perf);
+      setPlanLimiter(result.limiter);
       const fingerprint = planGenerationFingerprint(profile, result);
       setPlanFingerprint(fingerprint);
       setPlanInstanceId(loadPlanLastInstanceId());
@@ -145,6 +148,8 @@ export function PlanClient() {
       setPlanInstanceId(opts.planInstanceId);
     }
     const profile = loadProfile() ?? DEMO_PROFILE;
+    const perf = loadPerformance() ?? DEMO_PERFORMANCE;
+    setPlanLimiter(computeScoreResult(profile, perf).limiter);
     const hydrated = rehydratePlanWeeks(newWeeks, profile);
     savePlanSnapshot(hydrated, newFingerprint);
     setPlanFingerprint(newFingerprint);
@@ -172,6 +177,7 @@ export function PlanClient() {
     setWeeks(null);
     setSnapshotMeta(null);
     setPlanInstanceId(null);
+    setPlanLimiter("");
     setCloudHistory({ status: "idle", rows: [] });
     setRegenToken((t) => t + 1);
   }
@@ -201,7 +207,8 @@ export function PlanClient() {
     hasSession;
 
   return (
-    <div className="space-y-8">
+    <>
+      <div className="space-y-8 pb-28 lg:pb-0">
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
         <div>
           <h1 className="text-display text-3xl font-semibold text-foreground">
@@ -219,25 +226,37 @@ export function PlanClient() {
             </p>
           ) : null}
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-end">
           <Button
             type="button"
             variant="outline"
-            className="rounded-xl"
+            className="min-h-11 w-full rounded-xl sm:w-auto"
             onClick={regenerateFromProfile}
           >
             Régénérer depuis le profil actuel
           </Button>
-          <Button asChild variant="ghost" className="rounded-xl text-muted">
+          <Button asChild variant="ghost" className="min-h-11 w-full rounded-xl text-muted sm:w-auto">
             <Link href="/profile">Modifier le profil</Link>
           </Button>
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-neon/20 bg-gradient-to-br from-neon/5 via-transparent to-background/80 px-4 py-4 sm:px-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-neon">
+          Minimum Effective Plan
+        </p>
+        <p className="mt-2 text-sm leading-relaxed text-muted">
+          Quelques séances ciblées par semaine — objectifs, tags (Force, Endurance,
+          Conditioning…), substitutions si ton matériel ou tes contraintes
+          l&apos;exigent. Pas un programme médical.
+        </p>
       </div>
 
       <WeekPlan
         key={planFingerprint ?? "pending"}
         weeks={weeks}
         planFingerprint={planFingerprint}
+        planLimiter={planLimiter}
         planFeedback={{
           clientSyncId: loadPlanClientSyncId(),
           planInstanceId,
@@ -314,12 +333,22 @@ export function PlanClient() {
           Adapte les charges à ton niveau. Arrête ou modifie l&apos;exercice en
           cas de douleur inhabituelle.
         </p>
-        <Button asChild variant="outline" className="shrink-0 rounded-xl">
+        <Button asChild variant="outline" className="min-h-11 w-full shrink-0 rounded-xl sm:w-auto">
           <Link href="/equivalences">Adapter selon mon matériel</Link>
         </Button>
       </div>
 
       <MedicalDisclaimer />
-    </div>
+      </div>
+
+      <MobileStickyQuickBar>
+        <Button asChild size="sm" variant="secondary" className="min-h-11 flex-1 rounded-xl">
+          <Link href="/results">Score</Link>
+        </Button>
+        <Button asChild size="sm" className="min-h-11 flex-1 rounded-xl">
+          <Link href="/daily">Jour</Link>
+        </Button>
+      </MobileStickyQuickBar>
+    </>
   );
 }

@@ -7,6 +7,7 @@ import {
 } from "@/components/pricing/pricing-checkout-ui";
 import { PricingCheckoutFeedback } from "@/components/pricing/pricing-checkout-feedback";
 import { MedicalDisclaimer } from "@/components/disclaimer";
+import { Button } from "@/components/ui/button";
 
 const FREE_INCLUDES = [
   "Âge athlétique estimé",
@@ -29,20 +30,20 @@ const PREMIUM_INCLUDES = [
 
 export default function PricingPage() {
   return (
-    <div className="space-y-12">
+    <div className="min-w-0 space-y-12">
       <Suspense fallback={null}>
         <PricingCheckoutFeedback />
       </Suspense>
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-display text-3xl font-semibold text-foreground">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
+          <h1 className="text-display min-w-0 text-3xl font-semibold text-foreground">
             Tarifs
           </h1>
           <PricingStripeBadge />
         </div>
         <p className="max-w-2xl text-muted">
-          Paiement réel uniquement si Stripe est configuré (mode test). Sinon,
-          navigation démo inchangée.
+          Le premium débloque le rapport détaillé et le plan — le paiement n&apos;est
+          actif que si Stripe est configuré (sinon navigation démo inchangée).
         </p>
         <PricingStripeBanner />
       </div>
@@ -52,17 +53,29 @@ export default function PricingPage() {
           Tu ne paies pas pour un chiffre
         </h2>
         <p className="max-w-3xl text-sm leading-relaxed text-muted">
-          Tu paies pour savoir quoi faire ensuite : un{" "}
+          Tu paies pour un{" "}
           <strong className="text-foreground">diagnostic de performance</strong>{" "}
-          sur ce qui limite ton physique hybride, et un{" "}
-          <strong className="text-foreground">plan minimal sur 4 semaines</strong>{" "}
-          — pas pour un carnet d&apos;entraînements infini.
+          (limiteur, Performance Gap, priorités) et un{" "}
+          <strong className="text-foreground">plan minimal sur 4 semaines</strong>
+          — pas pour un carnet d&apos;entraînements infini. Le gratuit te donne déjà
+          l&apos;âge athlétique estimé, le Hybrid Score et la direction ; le premium
+          détaille quoi faire cette semaine (démo V1).
         </p>
-        <p className="max-w-3xl text-sm leading-relaxed text-muted">
-          Le gratuit te montre où tu en es. Le rapport complet te montre quoi
-          faire maintenant — Performance Gap, limiteur détaillé, objectifs et
-          séances (démo V1).
-        </p>
+      </section>
+
+      <section
+        className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center"
+        aria-labelledby="pricing-cta-heading"
+      >
+        <h2 id="pricing-cta-heading" className="sr-only">
+          Actions rapides
+        </h2>
+        <Button asChild className="min-h-11 w-full rounded-xl sm:w-auto">
+          <Link href="/report">Débloquer mon rapport complet</Link>
+        </Button>
+        <Button asChild variant="outline" className="min-h-11 w-full rounded-xl sm:w-auto">
+          <Link href="#offers-heading">Voir les offres</Link>
+        </Button>
       </section>
 
       <section

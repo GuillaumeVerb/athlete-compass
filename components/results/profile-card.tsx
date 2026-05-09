@@ -1,4 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export function ProfileCard({
   title,
@@ -11,6 +17,10 @@ export function ProfileCard({
     <Card>
       <CardHeader>
         <CardTitle>Profil athlétique</CardTitle>
+        <CardDescription>
+          Lecture sur les tests renseignés — estimation de performance, pas
+          diagnostic médical.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <p className="text-display text-xl font-semibold text-neon">

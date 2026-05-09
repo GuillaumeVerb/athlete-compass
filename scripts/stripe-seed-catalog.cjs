@@ -9,7 +9,7 @@
  * Affiche les lignes à copier dans .env / Vercel (STRIPE_PRICE_*).
  * Idempotent : `lookup_key` stable par offre (ne duplique pas si déjà créé).
  */
-/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-require-imports -- Node CJS entrypoint */
 
 const fs = require("fs");
 const path = require("path");

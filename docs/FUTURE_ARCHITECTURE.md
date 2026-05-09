@@ -4,6 +4,18 @@ Ce document décrit la cible technique **sans implémenter** le backend dans la 
 
 ---
 
+## Checklist `doc/12_PROMPT_SUPABASE_STRIPE_FUTUR.md`
+
+| Élément | Statut dans le repo |
+| --- | --- |
+| Document d’architecture (ce fichier) | **Ici** — sections modèle de données, flux, sécurité, plan V2+ |
+| Types TS (`Assessment`, `Purchase`, `PremiumReport`, `Plan4Weeks`, …) | **`lib/future/cloud-types.ts`** (+ ré-exports types métier) |
+| Tables Postgres cibles | Migrations versionnées **`docs/supabase/migrations/`** (miroir `supabase/migrations/`) — `purchases`, `premium_reports`, `assessments`, etc. |
+| Flux Stripe décrit | Section **Flux paiement** + routes **`/api/checkout`**, **`/api/webhooks/stripe`**, **`/api/purchase/complete`** |
+| Variables d’environnement | **`.env.example`** — toutes optionnelles pour `npm run dev` / `npm run build` |
+
+---
+
 ## Limites V1 (explicites)
 
 - Aucune dépendance runtime à Supabase ou Stripe.

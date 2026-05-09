@@ -19,13 +19,13 @@ Vision : un **diagnostic de performance hybride** court (âge athlétique, Hybri
 
 | | |
 | --- | --- |
-| **Objectif produit** | Démontrer la valeur en moins de 10 minutes : l’utilisateur comprend son résultat et veut aller plus loin (rapport / plan). |
-| **Features** | Profil utilisateur ; performances manuelles standardisées ; âge athlétique ; Hybrid Score ; profil athlétique ; limiteur principal ; Next Best Move ; fiabilité du score ; radar ; objectifs 4 semaines (aperçu) ; plan 4 semaines (aperçu) ; équivalences ; couche **premium simulée** (rapport verrouillé, pricing). |
-| **Écrans** | Landing ; profil ; performances ; résultats ; tests ; équivalences ; plan ; rapport (verrouillé) ; pricing ; next-test. |
+| **Objectif produit** | Démontrer la valeur **dès la première lecture des résultats** : compréhension immédiate (âge athlétique, Hybrid Score, profil, limiteur) ; envie d’aller vers **rapport complet** / plan (visée **time-to-value** court : lecture quasi instantanée une fois sur l’écran résultats, hors temps de saisie). |
+| **Features** | Profil utilisateur ; performances manuelles standardisées ; âge athlétique ; Hybrid Score ; profil athlétique ; limiteur principal ; Next Best Move ; **fiabilité du score** ; radar ; **Performance Gap** (lecture visuelle + texte) ; objectifs 4 semaines (aperçu) ; plan minimal 4 semaines (aperçu) ; équivalences ; **Readiness + Training Debt + coach hybride (déterministe)** ; **Body Progress (démo)** ; couche **premium simulée** (rapport verrouillé, pricing) ; disclaimers *estimation de performance*. |
+| **Écrans** | Landing ; profil ; performances ; résultats ; **Aujourd’hui** (`/daily`) ; **Body Progress** (`/body-progress`) ; tests ; équivalences ; plan ; rapport (verrouillé) ; pricing ; next-test ; blog (`/blog`). |
 | **Données** | `localStorage` uniquement (profil + performances). Pas de backend. |
 | **Complexité technique** | Faible — Next.js App Router, scoring déterministe côté client. |
-| **Risques** | Données perdues si cache vidé ; pas d’historique ; pas de revenu réel. |
-| **Critères de succès** | L’utilisateur lit son résultat sans aide ; CTA vers rapport / pricing compris ; build stable (typecheck, lint). |
+| **Risques** | Données perdues si cache vidé ; pas d’historique ; pas de revenu réel ; attentes « médical / biologique » si le wording dérive (garder les disclaimers). |
+| **Critères de succès** | L’utilisateur comprend son résultat **sans aide** ; CTA vers `/report` / `/pricing` **compris** ; build stable (`typecheck`, `lint`, `test`). |
 | **Métriques** | Taux de complétion profil → performances → résultats (analytics à brancher) ; temps médian sur page résultats ; clics vers `/report` et `/pricing`. |
 
 ---
@@ -98,7 +98,7 @@ Vision : un **diagnostic de performance hybride** court (âge athlétique, Hybri
 | | |
 | --- | --- |
 | **Objectif produit** | Réduire la **saisie manuelle** et enrichir le contexte (volume, allure, erg). |
-| **Intégrations possibles** | Strava ; Garmin ; Apple Health ; Google Fit ; Concept2 Logbook ; wearables type Whoop / Oura (plus tard). |
+| **Intégrations possibles** | Strava ; Garmin ; Apple Health ; Google Fit ; Concept2 Logbook ; wearables type Whoop / **Oura** (plus tard). |
 | **Écrans** | Connexion compte tiers ; mapping champs ; consentements ; réconciliation avec tests “officiels” du produit. |
 | **Données** | Tokens OAuth ; activités brutes ; tables de correspondance test ↔ activité. |
 | **Complexité technique** | Très élevée — APIs hétérogènes, quotas, normalisation, sync incrémentale. |

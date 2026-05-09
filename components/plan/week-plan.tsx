@@ -19,6 +19,20 @@ import {
   PlanWeekFeedbackCard,
   type PlanFeedbackContext,
 } from "@/components/plan/plan-week-feedback-card";
+import { cn } from "@/lib/utils";
+
+function planTagClass(tag: string): string {
+  const map: Record<string, string> = {
+    Force: "border-neon/40 bg-neon/10 text-neon",
+    Endurance: "border-border bg-surface-elevated/90 text-foreground",
+    Conditioning: "border-amber/45 bg-amber/10 text-amber",
+    Hybride: "border-neon/30 bg-neon/5 text-neon",
+    Core: "border-border bg-background/70 text-muted",
+    Recovery: "border-border/80 bg-background/50 text-muted",
+    Test: "border-border bg-surface text-foreground",
+  };
+  return map[tag] ?? "border-border bg-white/5 text-muted";
+}
 
 function blocksForDisplay(s: PlanSession) {
   return Array.isArray(s.blocks) ? s.blocks : [];
@@ -66,10 +80,13 @@ export function WeekPlan({
   weeks,
   planFingerprint,
   planFeedback,
+  planLimiter,
 }: {
   weeks: PlanWeek[];
   planFingerprint: string | null;
   planFeedback: PlanFeedbackContext | null;
+  /** Limiteur issu du dernier bilan — contexte Minimum Effective Plan. */
+  planLimiter?: string;
 }) {
   const [byWeek, setByWeek] = useState<Record<number, ProgressEntry>>(() =>
     initialByWeek(planFingerprint, weeks),
@@ -83,12 +100,12 @@ export function WeekPlan({
 
   return (
     <Tabs defaultValue="1" className="w-full">
-      <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 p-1">
+      <TabsList className="mb-1 flex h-auto min-h-12 w-full max-w-full flex-nowrap justify-start gap-1 overflow-x-auto overflow-y-hidden rounded-xl border border-border bg-background p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {weeks.map((w) => (
           <TabsTrigger
             key={w.week}
             value={String(w.week)}
-            className="rounded-lg data-[state=active]:text-neon"
+            className="min-h-10 min-w-11 shrink-0 snap-start rounded-lg px-3 py-2 text-xs font-medium data-[state=active]:text-neon sm:px-4 sm:text-sm"
           >
             S{w.week}
           </TabsTrigger>
@@ -103,6 +120,12 @@ export function WeekPlan({
             {w.sessions.length} séance{w.sessions.length > 1 ? "s" : ""} cette semaine
             (selon ta fréquence déclarée).
           </p>
+          {planLimiter?.trim() ? (
+            <p className="mt-3 rounded-xl border border-border/70 bg-background/50 px-3 py-2 text-xs leading-relaxed text-muted">
+              <span className="font-semibold text-foreground">Limiteur pris en compte :</span>{" "}
+              {planLimiter}
+            </p>
+          ) : null}
           <div className="mt-4 grid gap-6 lg:grid-cols-3">
             <div className="space-y-4 lg:col-span-2">
               {w.sessions.map((s, sessionIdx) => {
@@ -121,21 +144,27 @@ export function WeekPlan({
                 return (
                   <div
                     key={`${w.week}-${s.title}-${s.kind}-${sessionIdx}`}
-                    className="space-y-4 rounded-xl border border-border bg-surface/80 p-4"
+                    className="space-y-4 rounded-2xl border border-border/80 bg-surface/90 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-5"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="text-[11px] font-medium uppercase tracking-wider text-muted">
                           Séance {sessionIdx + 1} / {w.sessions.length}
                         </p>
-                        <p className="text-sm font-semibold text-foreground">{s.title}</p>
+                        <p className="text-display text-base font-semibold tracking-tight text-foreground">
+                          {s.title}
+                        </p>
                         <p className="mt-1 text-xs text-muted">
                           {s.durationMin} min · {sessionKindLabelFr(s.kind)}
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {(s.tags ?? []).map((t) => (
-                          <Badge key={t} variant="secondary">
+                          <Badge
+                            key={t}
+                            variant="outline"
+                            className={cn("text-[11px] font-semibold", planTagClass(t))}
+                          >
                             {t}
                           </Badge>
                         ))}
@@ -319,11 +348,12 @@ export function WeekPlan({
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted">{w.focus}</p>
-                  <p className="text-display mt-3 text-2xl font-semibold text-amber">
+                  <p className="text-display mt-3 text-3xl font-semibold tracking-tight text-amber tabular-nums">
                     {w.coherencePct}%
                   </p>
-                  <p className="mt-1 text-xs text-muted">
-                    Score de cohérence prévu (démo)
+                  <p className="mt-1 text-xs leading-relaxed text-muted">
+                    Score de cohérence prévu (démo) — reste crédible si les séances
+                    clés sont complétées.
                   </p>
                   <Link
                     href="/equivalences"

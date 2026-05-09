@@ -67,7 +67,7 @@ export function BilansTrendCharts({ items }: { items: AssessmentListItemClient[]
           Ordre chronologique — du plus ancien au plus récent parmi les bilans chargés.
         </p>
       </CardHeader>
-      <CardContent className="grid gap-6 lg:grid-cols-3">
+      <CardContent className="grid min-w-0 gap-6 lg:grid-cols-3">
         <ChartBlock title="Hybrid Score /100">
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData} margin={{ top: 8, right: 12, left: -18, bottom: 0 }}>
@@ -201,9 +201,11 @@ function ChartBlock({
   children: ReactNode;
 }) {
   return (
-    <div className="space-y-2">
+    <div className="min-w-0 space-y-2">
       <p className="text-[11px] font-medium uppercase tracking-wider text-muted">{title}</p>
-      {children}
+      <div className="h-50 w-full min-w-0 overflow-hidden">
+        {children}
+      </div>
     </div>
   );
 }

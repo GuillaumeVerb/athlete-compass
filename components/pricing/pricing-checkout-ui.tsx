@@ -45,6 +45,10 @@ export function PricingStripeBanner() {
       <strong className="text-amber">Stripe non configuré.</strong> Les offres
       restent en prévisualisation. Pour un parcours réel, configure les clés
       (voir <code className="text-xs">docs/V2_SETUP.md</code>).
+      <span className="mt-2 block text-xs text-muted">
+        Monétisation simulée (doc/07) : les boutons ouvrent le rapport verrouillé
+        ou la grille tarifs — aucun prélèvement.
+      </span>
     </div>
   );
 }

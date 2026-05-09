@@ -7,11 +7,15 @@ import { computeScoreResult } from "@/lib/scoring";
 import { DEMO_PERFORMANCE, DEMO_PROFILE } from "@/lib/mock-data";
 import { loadPerformance, loadProfile } from "@/lib/storage";
 import { listMissingTestTitles, listMissingTestKeys } from "@/lib/scoring/reliability";
+import { filledCount } from "@/lib/scoring/parse";
 import {
   reliabilityTierExplanationFr,
   reliabilityTierFromPct,
 } from "@/lib/scoring/reliability-tier";
-import { filledCount } from "@/lib/scoring/parse";
+import { computeFutureAthleticAge } from "@/lib/scoring/future-athletic-age";
+import { computeReadiness } from "@/lib/scoring/readiness";
+import { computeTrainingDebt } from "@/lib/scoring/training-debt";
+import { MOCK_DAILY_WELLNESS } from "@/lib/mock/daily";
 import { AthleticAgeCard } from "@/components/results/athletic-age-card";
 import { HybridScoreCard } from "@/components/results/hybrid-score-card";
 import { ResultsRadarChart } from "@/components/results/radar-chart";
@@ -21,7 +25,11 @@ import { NextTestCard } from "@/components/results/next-test-card";
 import { NextBestMoveCard } from "@/components/results/next-best-move-card";
 import { GoalsFourWeeksCard } from "@/components/results/goals-four-weeks-card";
 import { GoalHybridExplainer } from "@/components/results/goal-hybrid-explainer";
+import { HybridCoachCard } from "@/components/coach/hybrid-coach-card";
+import { FutureAthleticAgeCard } from "@/components/premium/future-athletic-age-card";
+import { TrainingDebtCard } from "@/components/results/training-debt-card";
 import { MedicalDisclaimer } from "@/components/disclaimer";
+import { MobileStickyQuickBar } from "@/components/layout/mobile-sticky-quick-bar";
 import { CheckoutButton } from "@/components/checkout/checkout-button";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -98,6 +106,9 @@ export function ResultsClient() {
   }
 
   const { result, perf, profile, userFilledTests, performancesAreDemo } = payload;
+  const readiness = computeReadiness(MOCK_DAILY_WELLNESS);
+  const trainingDebt = computeTrainingDebt(result.breakdown, readiness.readinessScore, profile);
+  const futureAge = computeFutureAthleticAge(result);
   const missingTitles = listMissingTestTitles(perf);
   const missingKeys = listMissingTestKeys(perf);
   const showProvisional = result.reliabilityPct < 100 && missingTitles.length > 0;
@@ -110,7 +121,8 @@ export function ResultsClient() {
     !performancesAreDemo && userFilledTests > 0 && userFilledTests < 3;
 
   return (
-    <div className="space-y-12 sm:space-y-14">
+    <>
+      <div className="space-y-12 pb-28 sm:space-y-14 lg:pb-0">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0 space-y-2">
           <SectionKicker>Résultats</SectionKicker>
@@ -118,15 +130,25 @@ export function ResultsClient() {
             Ton aperçu
           </h1>
           <p className="max-w-xl text-sm leading-relaxed text-muted sm:text-base">
-            Hybrid Score, profil athlétique, limiteur principal, fiabilité du
-            score — le détail pondéré par ton objectif est sous le score.
+            Hybrid Score, profil athlétique, limiteur principal, Performance Gap en
+            lecture rapide, fiabilité du score — le détail pondéré par ton objectif
+            est sous le score.
           </p>
         </div>
-        <div className="flex w-full max-w-md shrink-0 flex-col gap-2 sm:items-end">
-          <Badge variant="secondary" className="w-fit px-4 py-2 text-sm">
-            Fiabilité : {result.reliabilityPct}% ({tier})
+        <div className="flex w-full min-w-0 max-w-md shrink-0 flex-col gap-2 sm:items-end">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="w-full rounded-xl border-neon/30 text-neon sm:w-fit"
+          >
+            <Link href="/daily">Aujourd&apos;hui</Link>
+          </Button>
+          <Badge variant="secondary" className="w-full justify-center px-4 py-2 text-sm sm:w-fit sm:justify-start">
+            <span className="sr-only">Niveau de fiabilité du score : </span>
+            Fiabilité : {tier} ({result.reliabilityPct}%)
           </Badge>
-          <p className="text-xs leading-relaxed text-muted sm:text-right">
+          <p className="break-words text-xs leading-relaxed text-muted sm:text-right">
             {tierExplain}
           </p>
         </div>
@@ -141,9 +163,10 @@ export function ResultsClient() {
             Lecture encore limitée
           </p>
           <p className="mt-2 text-sm leading-relaxed text-muted">
-            Ton score est encore provisoire — la{" "}
+            Ton score est encore provisoire. Ajoute au moins 3 tests pour obtenir
+            une première lecture utile — la{" "}
             <strong className="text-foreground">fiabilité du score</strong>{" "}
-            montera quand tu auras au moins 3 tests renseignés.
+            montera quand tu auras complété davantage de champs.
           </p>
           <Button asChild variant="outline" className="mt-4 rounded-xl">
             <Link href="/performances">Compléter mes performances</Link>
@@ -247,6 +270,34 @@ export function ResultsClient() {
         <GoalsFourWeeksCard items={result.goals4Weeks} />
       </section>
 
+      <section className="space-y-5" aria-labelledby="results-daily-heading">
+        <div>
+          <SectionKicker>Quotidien</SectionKicker>
+          <SectionTitle id="results-daily-heading">Dette, coach, projection</SectionTitle>
+          <p className="mt-2 max-w-2xl text-sm text-muted">
+            Aperçu basé sur tes scores + déclarations démo (readiness). Va sur{" "}
+            <Link href="/daily" className="text-neon hover:underline">
+              Aujourd&apos;hui
+            </Link>{" "}
+            pour la boucle complète.
+          </p>
+        </div>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <TrainingDebtCard debt={trainingDebt} />
+          <FutureAthleticAgeCard data={futureAge} locked />
+        </div>
+        <HybridCoachCard
+          context={{
+            profileId: result.profileId,
+            goal: profile.goal,
+            readinessScore: readiness.readinessScore,
+            constraints: profile.constraints,
+            equipment: profile.equipment,
+            nextBestMove: result.nextBestMove,
+          }}
+        />
+      </section>
+
       <div className="flex flex-col gap-4 rounded-2xl border border-neon/25 bg-neon/10 p-6 md:flex-row md:items-center md:justify-between">
         <div className="max-w-xl space-y-2 text-sm leading-relaxed text-muted">
           <p>
@@ -259,21 +310,31 @@ export function ResultsClient() {
             faire maintenant.
           </p>
         </div>
-        <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <CheckoutButton
             productKey="pack_29"
-            className="rounded-xl"
+            className="min-h-11 w-full rounded-xl sm:w-auto"
             fallbackHref="/report"
           >
             Débloquer mon rapport
           </CheckoutButton>
-          <Button asChild variant="outline" className="rounded-xl">
+          <Button asChild variant="outline" className="min-h-11 w-full rounded-xl sm:w-auto">
             <Link href="/pricing">Voir les offres</Link>
           </Button>
         </div>
       </div>
 
       <MedicalDisclaimer />
-    </div>
+      </div>
+
+      <MobileStickyQuickBar>
+        <Button asChild size="sm" variant="secondary" className="min-h-11 flex-1 rounded-xl">
+          <Link href="/daily">Jour</Link>
+        </Button>
+        <Button asChild size="sm" className="min-h-11 flex-1 rounded-xl">
+          <Link href="/plan">Plan</Link>
+        </Button>
+      </MobileStickyQuickBar>
+    </>
   );
 }

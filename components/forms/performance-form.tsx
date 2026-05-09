@@ -198,13 +198,13 @@ export function PerformanceForm({
       return;
     }
     savePerformance(built.data);
-    router.push("/results");
+    router.push("/daily");
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-8">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="max-w-xl text-sm text-muted">
+    <form onSubmit={onSubmit} className="min-w-0 space-y-8">
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-4">
+        <p className="min-w-0 max-w-xl text-sm leading-relaxed text-muted">
           Besoin du détail d&apos;un test ? Consulte les{" "}
           <Link href="/tests" className="text-neon hover:underline">
             protocoles standardisés
@@ -267,7 +267,10 @@ export function PerformanceForm({
         un pourcentage de fiabilité.
       </p>
       {formError ? (
-        <p className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <p
+          role="alert"
+          className="break-words rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+        >
           {formError}
         </p>
       ) : null}

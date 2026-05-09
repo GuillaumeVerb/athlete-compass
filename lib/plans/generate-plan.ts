@@ -91,7 +91,7 @@ function baseSession(
     zone2: ["Endurance"],
     metcon_short: ["Conditioning"],
     hybrid_core: ["Hybride", "Core"],
-    test_retest: ["Hybride"],
+    test_retest: ["Hybride", "Test"],
     recovery_active: ["Recovery"],
   };
 
@@ -250,7 +250,8 @@ const WEEK_BLUEPRINTS: {
   },
   {
     weekTheme: "Ajouter de l’intensité",
-    objective: "Monter légèrement le volume utile.",
+    objective:
+      "Monter le volume utile : une touche intervalles (rameur / vélo) + conservation de la force.",
     checks: [
       "Ajouter 5–10 min sur la Zone 2 si la récup est verte",
       "Garder 1 jour off actif (marche)",

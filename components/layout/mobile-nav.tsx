@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
   Activity,
+  CalendarDays,
   ClipboardList,
-  Gauge,
   Home,
   Menu,
   X,
@@ -28,14 +28,17 @@ const main = [
     match: (p: string) => p.startsWith("/performances"),
   },
   {
-    href: "/results",
-    label: "Score",
-    icon: Gauge,
-    match: (p: string) => p.startsWith("/results"),
+    href: "/daily",
+    label: "Jour",
+    icon: CalendarDays,
+    match: (p: string) => p.startsWith("/daily"),
   },
 ];
 
 const moreLinks = [
+  { href: "/results", label: "Score" },
+  { href: "/blog", label: "Blog" },
+  { href: "/body-progress", label: "Corps" },
   { href: "/bilans", label: "Mes bilans" },
   { href: "/plan", label: "Plan 4 sem." },
   { href: "/report", label: "Rapport" },

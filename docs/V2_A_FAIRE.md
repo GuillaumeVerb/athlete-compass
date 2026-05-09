@@ -2,6 +2,8 @@
 
 Tout ce qui demande un **compte externe**, des **clés** ou le **dashboard** Stripe / Resend. Le code est déjà branché : tu coches ici quand c’est prêt.
 
+**Avant la première commande** : `pnpm check:v2` (ou `npm run check:v2`) — liste ce qui manque dans `.env` / `.env.local` **sans afficher de secrets**.
+
 Guide technique détaillé (commandes, curl, fichiers) : **[`V2_SETUP.md`](V2_SETUP.md)** — ce fichier est la **liste d’actions** à ne pas oublier.
 
 ---

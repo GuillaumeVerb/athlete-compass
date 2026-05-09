@@ -9,7 +9,7 @@ export function AthleticAgeCard({
 }) {
   const delta = athleticAge - realAge;
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-surface-elevated to-surface p-6 lg:p-8">
+    <div className="relative overflow-hidden rounded-2xl border border-neon/25 bg-gradient-to-br from-surface-elevated via-surface to-background p-6 shadow-[0_0_40px_-24px_rgba(82,255,114,0.35)] lg:p-8">
       <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-neon/10 blur-3xl" />
       <p className="relative text-sm text-muted">Âge athlétique</p>
       <p className="text-display relative mt-2 text-5xl font-semibold text-foreground sm:text-6xl">

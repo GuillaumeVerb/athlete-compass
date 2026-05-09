@@ -2,9 +2,42 @@
 
 Référence rapide : ce qui est **déjà branché dans le code**, ce qui **reste côté toi** (config / produit), et ce qui est **volontairement plus tard** (hors périmètre actuel).
 
-**Config Stripe + Resend + déploiement (listes à cocher)** : **[`V2_A_FAIRE.md`](V2_A_FAIRE.md)** — à faire quand tu branches monétisation et emails.
+**Config Stripe + Resend + déploiement (cases à cocher détaillées)** : **[`V2_A_FAIRE.md`](V2_A_FAIRE.md)**.
 
-Guide technique pas à pas : **[`V2_SETUP.md`](V2_SETUP.md)**.
+Guide technique pas à pas : **[`V2_SETUP.md`](V2_SETUP.md)**. Variables d’exemple : **`.env.example`**.
+
+---
+
+## Vérification rapide (local ou prod)
+
+```bash
+curl -s "$NEXT_PUBLIC_APP_URL/api/health/cloud" | jq
+```
+
+(En local sans `NEXT_PUBLIC_APP_URL` : `curl -s http://localhost:3000/api/health/cloud | jq`.)
+
+**Sans lancer le serveur** : `pnpm check:v2` — même logique que l’API health, lecture seule des fichiers `.env` / `.env.local`.
+
+| Clé | Signification |
+| --- | --- |
+| `supabaseBrowser` | `NEXT_PUBLIC_SUPABASE_*` présents |
+| `supabaseAdmin` | `SUPABASE_SERVICE_ROLE_KEY` présent |
+| `stripeSecret` | `STRIPE_SECRET_KEY` présente |
+| `stripeWebhook` | `STRIPE_WEBHOOK_SECRET` présent |
+| `stripeCheckout` | secret + **les trois** `STRIPE_PRICE_*` (voir `isStripeCheckoutConfigured` dans `lib/env/cloud-ready.ts`) ; `NEXT_PUBLIC_APP_URL` **recommandé** pour les URLs de retour Stripe en prod |
+| `resendEmail` | `RESEND_API_KEY` + `RESEND_FROM_EMAIL` |
+| `cronRetestReminders` | `CRON_SECRET` (rappels retest — optionnel) |
+
+Tant que `stripeCheckout` est `false`, les CTA checkout restent en **navigation démo** (fallback) côté UI.
+
+---
+
+## Phases recommandées
+
+1. **Phase A — Données** : appliquer les migrations **`001` … `008`** (`docs/supabase/migrations/`) sur ton projet Supabase ; vérifier `supabaseAdmin: true`.
+2. **Phase B — Paiement test** : suivre **`V2_A_FAIRE.md`** (Stripe test + webhook local) jusqu’à `stripeCheckout: true` ; enchaîner un paiement `4242…` → `/report` + lignes `purchases` / `premium_reports` si snapshot checkout.
+3. **Phase C — Emails** : Resend (optionnel) jusqu’à `resendEmail: true`.
+4. **Phase D — Prod** : recopier les env sur l’hébergeur, webhook Stripe prod, domaine Resend aligné sur l’URL publique.
 
 ---
 
@@ -21,7 +54,7 @@ Guide technique pas à pas : **[`V2_SETUP.md`](V2_SETUP.md)**.
 
 ## Déjà couvert côté code / schéma
 
-- Migrations **`001` … `005`** (ou `supabase db push`) : `purchases`, snapshot checkout, **`premium_reports`**, **`plan_instances`** (+ `user_id` / `purchase_id`).
+- Migrations **`001` … `008`** dans `docs/supabase/migrations/` : `purchases`, snapshot checkout, **`premium_reports`**, **`plan_instances`** (+ `user_id` / `purchase_id`), **`assessments`**, feedback plan, **rappels retest** (`008`) — à appliquer sur l’instance (`supabase db push` ou SQL Editor).
 - Variables Supabase dans `.env` / hébergeur (hors Stripe/Resend : voir `V2_SETUP`).
 
 ---
@@ -46,9 +79,9 @@ Guide technique pas à pas : **[`V2_SETUP.md`](V2_SETUP.md)**.
 
 ## Prochaines briques V2 (code / produit)
 
-1. **Migration `003`** déjà appliquée sur ton instance ? sinon `db push` ou SQL Editor.
-2. **Stripe + Resend + prod** : suivre **`V2_A_FAIRE.md`**.
-3. **PDF** : route **`GET /api/report/pdf`** (aperçu `pdf-lib`, cookie requis) ; stockage **`pdf_url`** + bucket Supabase — à faire.
+1. **Migrations `001`–`008`** appliquées sur ton instance ? sinon `supabase db push` ou copier-coller depuis `docs/supabase/migrations/`.
+2. **Stripe + Resend + prod** : suivre **`V2_A_FAIRE.md`** + curl health ci-dessus.
+3. **PDF** : route **`GET /api/report/pdf`** (aperçu `pdf-lib`, cookie requis) ; persistance **`pdf_url`** + Storage Supabase — à faire.
 4. **Auth** (magic link) + `user_id` sur achats / rapports.
 
 ---

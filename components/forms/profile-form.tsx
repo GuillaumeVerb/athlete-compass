@@ -117,8 +117,8 @@ export function ProfileForm({ initial }: { initial: UserProfile | null }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-8">
-      <div className="grid gap-8 lg:grid-cols-2">
+    <form onSubmit={onSubmit} className="min-w-0 space-y-8">
+      <div className="grid min-w-0 gap-8 lg:grid-cols-2">
         <Card className="p-6">
           <h2 className="text-display mb-4 text-lg font-semibold text-foreground">
             Identité & anthropométrie
@@ -133,16 +133,19 @@ export function ProfileForm({ initial }: { initial: UserProfile | null }) {
                 onChange={(e) => setAge(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
-              <Label>Sexe</Label>
-              <div className="flex gap-2">
+            <fieldset className="m-0 space-y-2 border-0 p-0">
+              <legend className="text-sm font-medium leading-none text-foreground">
+                Sexe
+              </legend>
+              <div className="flex flex-wrap gap-2">
                 {(["homme", "femme", "autre"] as const).map((s) => (
                   <button
                     key={s}
                     type="button"
+                    aria-pressed={sex === s}
                     onClick={() => setSex(s)}
                     className={cn(
-                      "flex-1 rounded-xl border px-3 py-2 text-sm capitalize transition-colors",
+                      "min-h-11 min-w-[5.5rem] flex-1 rounded-xl border px-3 py-2 text-sm capitalize transition-colors",
                       sex === s
                         ? "border-neon/50 bg-neon/10 text-neon"
                         : "border-border bg-background text-muted hover:border-foreground/20",
@@ -152,7 +155,7 @@ export function ProfileForm({ initial }: { initial: UserProfile | null }) {
                   </button>
                 ))}
               </div>
-            </div>
+            </fieldset>
             <div className="space-y-2">
               <Label htmlFor="h">Taille (cm)</Label>
               <Input
@@ -194,9 +197,10 @@ export function ProfileForm({ initial }: { initial: UserProfile | null }) {
                 <button
                   key={g.id}
                   type="button"
+                  aria-pressed={goal === g.id}
                   onClick={() => setGoal(g.id)}
                   className={cn(
-                    "rounded-2xl border p-4 text-left transition-all",
+                    "min-w-0 rounded-2xl border p-4 text-left transition-all",
                     goal === g.id
                       ? "border-neon/45 bg-neon/10 neon-border"
                       : "border-border bg-background/60 hover:border-foreground/20",
@@ -220,9 +224,10 @@ export function ProfileForm({ initial }: { initial: UserProfile | null }) {
                 <button
                   key={f.id}
                   type="button"
+                  aria-pressed={frequency === f.id}
                   onClick={() => setFrequency(f.id)}
                   className={cn(
-                    "rounded-xl border px-4 py-2.5 text-sm transition-colors",
+                    "min-h-11 rounded-xl border px-4 py-2.5 text-sm transition-colors",
                     frequency === f.id
                       ? "border-neon/50 bg-neon/10 text-neon"
                       : "border-border text-muted hover:border-foreground/20",
@@ -249,6 +254,7 @@ export function ProfileForm({ initial }: { initial: UserProfile | null }) {
                   <button
                     key={c.id}
                     type="button"
+                    aria-pressed={on}
                     onClick={() =>
                       setConstraints((prev) =>
                         prev.includes(c.id)
@@ -257,7 +263,7 @@ export function ProfileForm({ initial }: { initial: UserProfile | null }) {
                       )
                     }
                     className={cn(
-                      "rounded-xl border px-3 py-2 text-xs transition-colors",
+                      "min-h-9 rounded-xl border px-3 py-2 text-xs transition-colors",
                       on
                         ? "border-amber/50 bg-amber/10 text-amber"
                         : "border-border text-muted hover:border-foreground/20",
@@ -273,7 +279,7 @@ export function ProfileForm({ initial }: { initial: UserProfile | null }) {
       </div>
 
       {error ? (
-        <p className="text-sm text-red-400" role="alert">
+        <p className="break-words text-sm text-red-400" role="alert">
           {error}
         </p>
       ) : null}

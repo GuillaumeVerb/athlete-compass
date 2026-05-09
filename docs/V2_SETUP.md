@@ -6,6 +6,12 @@ La V1 tourne **sans** ces étapes. Utilise ce guide quand tu veux activer les ro
 
 ## Vérifier l’état des intégrations
 
+**Sans serveur** (lecture `.env` / `.env.local` uniquement) :
+
+```bash
+pnpm check:v2
+```
+
 En dev, une fois le serveur lancé :
 
 ```bash

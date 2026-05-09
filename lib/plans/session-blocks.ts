@@ -236,6 +236,7 @@ function blocksForceLower(ctx: Ctx): PlanSessionBlock[] {
 }
 
 function blocksForceLowerLight(ctx: Ctx): PlanSessionBlock[] {
+  void ctx;
   return [
     {
       label: "Échauffement (8–10 min)",
@@ -478,6 +479,7 @@ function blocksTestRetest(ctx: Ctx): PlanSessionBlock[] {
 }
 
 function blocksRecovery(ctx: Ctx): PlanSessionBlock[] {
+  void ctx;
   return [
     {
       label: "Flux très léger (20–30 min)",

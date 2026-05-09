@@ -14,14 +14,20 @@ export function PricingCard({
   highlight,
   productKey,
   checkoutCtaLabel,
+  simulationCtaLabel,
+  fallbackHref = "/report",
 }: {
   title: string;
   price: string;
   features: string[];
   highlight?: boolean;
-  /** Si défini : bouton Stripe quand configuré, sinon « Bientôt disponible ». */
+  /** Si défini : bouton Stripe quand configuré, sinon lien simulation (démo). */
   productKey?: PurchaseProductKey;
   checkoutCtaLabel?: string;
+  /** Libellé bouton sans Stripe (défaut : parcours rapport verrouillé). */
+  simulationCtaLabel?: string;
+  /** Sans Stripe : lien pour prévisualiser le déblocage (défaut `/report`). */
+  fallbackHref?: string;
 }) {
   const { status, stripeCheckout } = useCheckoutAvailability();
 
@@ -55,10 +61,13 @@ export function PricingCard({
       {productKey ? (
         <CheckoutButton
           productKey={productKey}
+          fallbackHref={stripeCheckout ? undefined : fallbackHref}
           className="mt-8 w-full rounded-xl"
           variant={highlight ? "amber" : "default"}
         >
-          {checkoutCtaLabel ?? "Payer (test)"}
+          {stripeCheckout
+            ? (checkoutCtaLabel ?? "Payer (test)")
+            : (simulationCtaLabel ?? "Voir la simulation (démo)")}
         </CheckoutButton>
       ) : (
         <Button
@@ -71,8 +80,9 @@ export function PricingCard({
         </Button>
       )}
       {productKey && status === "ready" && !stripeCheckout ? (
-        <p className="mt-2 text-center text-[10px] text-muted">
-          Simulation — aucun prélèvement
+        <p className="mt-2 text-center text-[10px] leading-relaxed text-muted">
+          Simulation V1 — pas de prélèvement. Configure Stripe pour un checkout
+          réel (voir <code className="text-[10px]">docs/V2_SETUP.md</code>).
         </p>
       ) : null}
       {productKey && status === "ready" && stripeCheckout ? (
