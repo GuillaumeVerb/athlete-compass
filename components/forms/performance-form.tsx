@@ -7,9 +7,11 @@ import type { PerformanceInput } from "@/lib/types";
 import { DEMO_PERFORMANCE } from "@/lib/mock-data";
 import { loadPerformance, savePerformance } from "@/lib/storage";
 import { buildPerformanceInputFromForm } from "@/lib/performance/build-performance-input-from-form";
+import { perfLoadNoteFormKey } from "@/lib/performance/performance-load-notes";
 import { PERF_FOCUS_QUERY } from "@/lib/performance/performance-focus";
 import { PERFORMANCE_FORM_FIELDS } from "@/lib/performance/performance-form-fields";
 import { groupPerformanceFormFields } from "@/lib/performance/performance-form-sections";
+import type { PerformanceTestKey } from "@/lib/tests/test-protocols";
 import { cn } from "@/lib/utils";
 import { TestProtocolMini } from "@/components/tests/test-protocol-mini";
 import { Button } from "@/components/ui/button";
@@ -95,6 +97,8 @@ const ICON_BY_KEY: Record<keyof PerformanceInput, typeof Activity> = {
   sledCarry: ChevronsRight,
   hollowHold: Timer,
   lSitHold: Brackets,
+  /** Non affiché — satisfait `Record<keyof PerformanceInput, …>`. */
+  loadNotes: Activity,
 };
 
 const fieldsWithIcons = PERFORMANCE_FORM_FIELDS.map((f) => ({
@@ -108,7 +112,7 @@ const FOCUS_KEYS = new Set<string>(
   fieldsWithIcons.map((f) => f.key as string),
 );
 
-function isPerfFocusKey(v: string | null): v is keyof PerformanceInput {
+function isPerfFocusKey(v: string | null): v is PerformanceTestKey {
   return v != null && FOCUS_KEYS.has(v);
 }
 
@@ -129,6 +133,11 @@ export function PerformanceForm({
       const v = base[f.key];
       if (v == null) o[f.key] = "";
       else o[f.key] = typeof v === "number" ? String(v) : v;
+      if (f.optionalLoad) {
+        const fk = perfLoadNoteFormKey(f.optionalLoad.noteKey);
+        const lv = base.loadNotes?.[f.optionalLoad.noteKey];
+        o[fk] = lv == null ? "" : String(lv);
+      }
     }
     return o;
   });
@@ -142,6 +151,11 @@ export function PerformanceForm({
         const v = p[f.key];
         next[f.key] =
           v == null ? "" : typeof v === "number" ? String(v) : (v as string);
+        if (f.optionalLoad) {
+          const fk = perfLoadNoteFormKey(f.optionalLoad.noteKey);
+          const lv = p.loadNotes?.[f.optionalLoad.noteKey];
+          next[fk] = lv == null ? "" : String(lv);
+        }
       }
       setValues((prev) => ({ ...prev, ...next }));
     });
@@ -221,7 +235,20 @@ export function PerformanceForm({
             <p className="mt-1 text-sm text-muted">{blurb}</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {fields.map(({ key, title: fieldTitle, unit, placeholder, icon: Icon, type }) => (
+            {fields.map((field) => {
+              const {
+                key,
+                title: fieldTitle,
+                unit,
+                placeholder,
+                icon: Icon,
+                type,
+                optionalLoad,
+              } = field;
+              const loadFormKey = optionalLoad
+                ? perfLoadNoteFormKey(optionalLoad.noteKey)
+                : null;
+              return (
               <div key={key} id={`perf-field-${key}`} className="scroll-mt-24">
                 <Card
                   className={cn(
@@ -254,11 +281,35 @@ export function PerformanceForm({
                       inputMode={type === "number" ? "decimal" : "text"}
                     />
                     <TestProtocolMini testId={key} />
+                    {optionalLoad && loadFormKey ? (
+                      <div className="space-y-1.5 border-t border-border/60 pt-2">
+                        <div className="text-[11px] font-medium uppercase tracking-wider text-muted">
+                          {optionalLoad.unit}
+                        </div>
+                        <Label
+                          className="text-xs font-normal text-muted"
+                          htmlFor={loadFormKey}
+                        >
+                          {optionalLoad.label}
+                        </Label>
+                        <Input
+                          id={loadFormKey}
+                          placeholder={optionalLoad.placeholder}
+                          value={values[loadFormKey] ?? ""}
+                          onChange={(e) =>
+                            setField(loadFormKey, e.target.value)
+                          }
+                          inputMode="decimal"
+                          className="h-9"
+                        />
+                      </div>
+                    ) : null}
                   </div>
                 </div>
                 </Card>
               </div>
-            ))}
+            );
+            })}
           </div>
         </section>
       ))}

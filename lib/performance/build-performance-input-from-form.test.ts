@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildPerformanceInputFromForm } from "./build-performance-input-from-form";
+import { perfLoadNoteFormKey } from "./performance-load-notes";
 
 describe("buildPerformanceInputFromForm (onglet Perf)", () => {
   it("accepte un 1 km valide seul", () => {
@@ -36,5 +37,25 @@ describe("buildPerformanceInputFromForm (onglet Perf)", () => {
     const r = buildPerformanceInputFromForm({ farmerCarry: "40/35" });
     expect(r.ok).toBe(true);
     if (r.ok) expect(r.data.farmerCarry).toBe("40/35");
+  });
+
+  it("accepte masse med ball optionnelle avec wall ball", () => {
+    const r = buildPerformanceInputFromForm({
+      wallBall150: "06:00",
+      [perfLoadNoteFormKey("wallBall150Kg")]: "12,5",
+    });
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.wallBall150).toBe("06:00");
+      expect(r.data.loadNotes?.wallBall150Kg).toBe(12.5);
+    }
+  });
+
+  it("refuse masse med ball invalide", () => {
+    const r = buildPerformanceInputFromForm({
+      wallBall150: "06:00",
+      [perfLoadNoteFormKey("wallBall150Kg")]: "0",
+    });
+    expect(r.ok).toBe(false);
   });
 });

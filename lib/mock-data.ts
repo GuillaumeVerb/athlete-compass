@@ -61,4 +61,12 @@ export const DEMO_PERFORMANCE: PerformanceInput = {
   sledCarry: "50/58",
   hollowHold: "01:20",
   lSitHold: "00:22",
+  loadNotes: {
+    wallBall150Kg: 9,
+    hybridDbChipperDbTotalKg: 45,
+    kbSwing100Kg: 24,
+    farmerCarryKg: 64,
+    sandbagCarryKg: 50,
+    sledCarryKg: 80,
+  },
 };

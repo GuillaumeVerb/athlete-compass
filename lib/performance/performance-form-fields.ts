@@ -1,15 +1,23 @@
-import type { PerformanceInput } from "@/lib/types";
+import type { PerformanceInput, PerformanceLoadNotes } from "@/lib/types";
+import type { PerformanceTestKey } from "@/lib/tests/test-protocols";
 
 export type PerformanceFormFieldType = "time" | "number" | "text";
 
 export type PerformanceFormFieldMeta = {
-  key: keyof PerformanceInput;
+  key: PerformanceTestKey;
   title: string;
   unit: string;
   placeholder?: string;
   type: PerformanceFormFieldType;
   /** Pour `type: "number"` — reps ≥0, kg >0, ou hauteur cm entière. */
   numberKind?: "reps" | "kg" | "cm";
+  /** Charge / contexte optionnel — stocké dans `performance.loadNotes` (hors score). */
+  optionalLoad?: {
+    noteKey: keyof PerformanceLoadNotes;
+    label: string;
+    unit: string;
+    placeholder?: string;
+  };
 };
 
 /** Métadonnées des champs — même ordre que l’UI `/performances` (onglet Perf). */
@@ -118,6 +126,12 @@ export const PERFORMANCE_FORM_FIELDS: PerformanceFormFieldMeta[] = [
     unit: "mm:ss",
     placeholder: "06:15",
     type: "time",
+    optionalLoad: {
+      noteKey: "wallBall150Kg",
+      label: "Poids du ballon (optionnel)",
+      unit: "kg",
+      placeholder: "ex. 9",
+    },
   },
   {
     key: "pullups",
@@ -174,6 +188,12 @@ export const PERFORMANCE_FORM_FIELDS: PerformanceFormFieldMeta[] = [
     unit: "mm:ss",
     placeholder: "03:45",
     type: "time",
+    optionalLoad: {
+      noteKey: "kbSwing100Kg",
+      label: "Poids kettlebell (optionnel)",
+      unit: "kg",
+      placeholder: "ex. 24",
+    },
   },
   {
     key: "hybridDbChipper",
@@ -181,6 +201,12 @@ export const PERFORMANCE_FORM_FIELDS: PerformanceFormFieldMeta[] = [
     unit: "mm:ss",
     placeholder: "12:00",
     type: "time",
+    optionalLoad: {
+      noteKey: "hybridDbChipperDbTotalKg",
+      label: "Somme des 2 haltères thruster (optionnel)",
+      unit: "kg",
+      placeholder: "ex. 45",
+    },
   },
   {
     key: "doubleUnders1min",
@@ -272,6 +298,12 @@ export const PERFORMANCE_FORM_FIELDS: PerformanceFormFieldMeta[] = [
     unit: "m / s",
     placeholder: "40/35",
     type: "text",
+    optionalLoad: {
+      noteKey: "farmerCarryKg",
+      label: "Charge totale portée (optionnel)",
+      unit: "kg",
+      placeholder: "ex. 64",
+    },
   },
   {
     key: "sandbagCarry",
@@ -279,6 +311,12 @@ export const PERFORMANCE_FORM_FIELDS: PerformanceFormFieldMeta[] = [
     unit: "m / s",
     placeholder: "40/50",
     type: "text",
+    optionalLoad: {
+      noteKey: "sandbagCarryKg",
+      label: "Poids du sac (optionnel)",
+      unit: "kg",
+      placeholder: "ex. 50",
+    },
   },
   {
     key: "sledCarry",
@@ -286,6 +324,12 @@ export const PERFORMANCE_FORM_FIELDS: PerformanceFormFieldMeta[] = [
     unit: "m / s",
     placeholder: "50/55",
     type: "text",
+    optionalLoad: {
+      noteKey: "sledCarryKg",
+      label: "Charge sur le sled (optionnel)",
+      unit: "kg",
+      placeholder: "ex. 80",
+    },
   },
   {
     key: "hollowHold",

@@ -20,6 +20,8 @@ import { computeTrainingDebt } from "@/lib/scoring/training-debt";
 import { DEMO_PERFORMANCE, DEMO_PROFILE } from "@/lib/mock-data";
 import { loadPerformance, loadProfile } from "@/lib/storage";
 import { TrainingDebtCard } from "@/components/results/training-debt-card";
+import { PerformanceLoadNotesReadout } from "@/components/performance/performance-load-notes-readout";
+import { hasAnyLoadNotes } from "@/lib/performance/load-notes-display";
 import { MobileStickyQuickBar } from "@/components/layout/mobile-sticky-quick-bar";
 
 function formatSleep(h: number): string {
@@ -33,7 +35,7 @@ function DailyLoopActions() {
   const [fatigueTipOpen, setFatigueTipOpen] = useState(false);
   return (
     <section
-      className="order-9 rounded-2xl border border-border bg-surface/50 p-4 sm:p-5"
+      className="order-10 rounded-2xl border border-border bg-surface/50 p-4 sm:p-5"
       aria-labelledby="daily-loop-actions-heading"
     >
       <h2 id="daily-loop-actions-heading" className="text-display text-sm font-semibold text-foreground">
@@ -115,6 +117,7 @@ export function DailyClient() {
 
   const {
     profile,
+    perf,
     result,
     readiness,
     debt,
@@ -215,7 +218,13 @@ export function DailyClient() {
         </div>
       </section>
 
-      <div className="order-4 grid gap-4 sm:grid-cols-2">
+      {hasAnyLoadNotes(perf.loadNotes) ? (
+        <div className="order-4">
+          <PerformanceLoadNotesReadout loadNotes={perf.loadNotes} compact />
+        </div>
+      ) : null}
+
+      <div className="order-5 grid gap-4 sm:grid-cols-2">
         <MiniStat
           icon={BedDouble}
           label="Sommeil"
@@ -242,7 +251,7 @@ export function DailyClient() {
         />
       </div>
 
-      <section className="order-5 rounded-2xl border border-border bg-surface/70 p-5 sm:p-6">
+      <section className="order-6 rounded-2xl border border-border bg-surface/70 p-5 sm:p-6">
         <div className="flex items-center gap-2">
           <Zap className="h-5 w-5 text-neon" aria-hidden />
           <h2 className="text-display text-lg font-semibold text-foreground">Âge athlétique</h2>
@@ -267,7 +276,7 @@ export function DailyClient() {
         </Button>
       </section>
 
-      <div className="order-6">
+      <div className="order-7">
         <HybridCoachCard
           context={{
             profileId: result.profileId,
@@ -280,7 +289,7 @@ export function DailyClient() {
         />
       </div>
 
-      <section className="order-7 flex flex-col gap-4 lg:order-8 lg:grid lg:grid-cols-2 lg:gap-4">
+      <section className="order-8 flex flex-col gap-4 lg:order-9 lg:grid lg:grid-cols-2 lg:gap-4">
         <div className="rounded-2xl border border-border bg-surface/70 p-5">
           <h2 className="text-display text-sm font-semibold text-foreground">À faire aujourd&apos;hui</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted">
@@ -299,13 +308,13 @@ export function DailyClient() {
         </div>
       </section>
 
-      <div className="order-8 lg:order-7">
+      <div className="order-9 lg:order-8">
         <TrainingDebtCard debt={debt} />
       </div>
 
       <DailyLoopActions />
 
-      <MedicalDisclaimer className="order-10" />
+      <MedicalDisclaimer className="order-11" />
       </div>
 
       <MobileStickyQuickBar>

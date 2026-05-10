@@ -86,6 +86,7 @@ const KEY_SECTION = {
   sledCarry: "coreCarry",
   hollowHold: "coreCarry",
   lSitHold: "coreCarry",
+  loadNotes: "muscularEndurance",
 } as const satisfies Record<keyof PerformanceInput, PerfFormSectionId>;
 
 export type PerformanceFormFieldWithIcon = PerformanceFormFieldMeta & {

@@ -32,6 +32,17 @@ export const userProfileSnapshotSchema = profileSchema.extend({
     .default([]),
 });
 
+const performanceLoadNotesSchema = z
+  .object({
+    wallBall150Kg: z.number().positive().max(600).optional(),
+    hybridDbChipperDbTotalKg: z.number().positive().max(600).optional(),
+    kbSwing100Kg: z.number().positive().max(600).optional(),
+    farmerCarryKg: z.number().positive().max(600).optional(),
+    sandbagCarryKg: z.number().positive().max(600).optional(),
+    sledCarryKg: z.number().positive().max(600).optional(),
+  })
+  .optional();
+
 export const performanceInputSnapshotSchema = z.object({
   row1k: z.string().optional(),
   skiErg500: z.string().optional(),
@@ -74,6 +85,7 @@ export const performanceInputSnapshotSchema = z.object({
   sledCarry: z.string().optional(),
   hollowHold: z.string().optional(),
   lSitHold: z.string().optional(),
+  loadNotes: performanceLoadNotesSchema,
 });
 
 export const checkoutSnapshotBodySchema = z.object({

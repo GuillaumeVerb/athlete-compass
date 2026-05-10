@@ -31,6 +31,7 @@ import { TrainingDebtCard } from "@/components/results/training-debt-card";
 import { MedicalDisclaimer } from "@/components/disclaimer";
 import { MobileStickyQuickBar } from "@/components/layout/mobile-sticky-quick-bar";
 import { CheckoutButton } from "@/components/checkout/checkout-button";
+import { PerformanceLoadNotesReadout } from "@/components/performance/performance-load-notes-readout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -194,6 +195,8 @@ export function ResultsClient() {
           </Button>
         </div>
       ) : null}
+
+      <PerformanceLoadNotesReadout loadNotes={perf.loadNotes} />
 
       <section className="space-y-5" aria-labelledby="results-overview-heading">
         <div>

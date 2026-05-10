@@ -2,7 +2,11 @@
 
 import type { PlanWeek } from "@/lib/plans/plan-types";
 import { parsePlanWeeksPayload } from "@/lib/plans/validate-plan-weeks";
-import type { PerformanceInput, UserProfile } from "@/lib/types";
+import type {
+  PerformanceInput,
+  PerformanceLoadNotes,
+  UserProfile,
+} from "@/lib/types";
 
 const PROFILE_KEY = "ac_profile_v1";
 const PERF_KEY = "ac_performance_v1";
@@ -53,12 +57,38 @@ export function saveProfile(p: UserProfile) {
   clearPlanSnapshot();
 }
 
+type LegacyPerformance = PerformanceInput & {
+  wallBall150BallKg?: number;
+  hybridDbChipperDbKg?: number;
+};
+
+function migrateLegacyPerformanceFields(p: LegacyPerformance): PerformanceInput {
+  const wall = p.wallBall150BallKg;
+  const chipPerHand = p.hybridDbChipperDbKg;
+  const { wallBall150BallKg: _w, hybridDbChipperDbKg: _h, ...rest } = p;
+  const prevLn = p.loadNotes ?? {};
+  const ln: PerformanceLoadNotes = { ...prevLn };
+  if (typeof wall === "number" && ln.wallBall150Kg == null) {
+    ln.wallBall150Kg = wall;
+  }
+  if (typeof chipPerHand === "number" && ln.hybridDbChipperDbTotalKg == null) {
+    ln.hybridDbChipperDbTotalKg = chipPerHand * 2;
+  }
+  const keys = Object.keys(ln) as (keyof PerformanceLoadNotes)[];
+  const hasLn = keys.some((k) => ln[k] != null);
+  return {
+    ...rest,
+    ...(hasLn ? { loadNotes: ln } : {}),
+  };
+}
+
 export function loadPerformance(): PerformanceInput | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(PERF_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as PerformanceInput;
+    const parsed = JSON.parse(raw) as LegacyPerformance;
+    return migrateLegacyPerformanceFields(parsed);
   } catch {
     return null;
   }

@@ -44,6 +44,22 @@ export interface UserProfile {
   constraints: ConstraintKey[];
 }
 
+/**
+ * Charges / contexte optionnels pour certains tests chronométrés ou portages.
+ * Sert à comparer des retests honnêtement ; **non utilisé** dans le calcul du score.
+ */
+export interface PerformanceLoadNotes {
+  /** Wall ball ×150 — masse du ballon (kg). */
+  wallBall150Kg?: number;
+  /** Chipper thrusters DB — somme des deux haltères (kg), ex. 45 si 22,5 + 22,5. */
+  hybridDbChipperDbTotalKg?: number;
+  /** 100 KB swings — poids de la kettlebell (kg). */
+  kbSwing100Kg?: number;
+  farmerCarryKg?: number;
+  sandbagCarryKg?: number;
+  sledCarryKg?: number;
+}
+
 export interface PerformanceInput {
   row1k?: string;
   /** 500 m SkiErg — mm:ss (cardio intense, croisé avec 1 km rameur). */
@@ -121,6 +137,7 @@ export interface PerformanceInput {
   swim400m?: string;
   /** 100 kettlebell swings (american) — mm:ss, poids au protocole. */
   kbSwing100?: string;
+  loadNotes?: PerformanceLoadNotes;
 }
 
 export type AthleticProfileId =

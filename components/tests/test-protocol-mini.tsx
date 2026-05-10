@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import type { PerformanceInput } from "@/lib/types";
+import type { PerformanceTestKey } from "@/lib/tests/test-protocols";
 import { TEST_PROTOCOLS } from "@/lib/tests/test-protocols";
 
-export function TestProtocolMini({ testId }: { testId: keyof PerformanceInput }) {
+export function TestProtocolMini({ testId }: { testId: PerformanceTestKey }) {
   const p = TEST_PROTOCOLS[testId];
   return (
     <details className="group mt-3 border-t border-border pt-3">

@@ -2,20 +2,20 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import type { PerformanceInput } from "@/lib/types";
 import { isUuid } from "@/lib/uuid";
 import { performancesHrefFocused } from "@/lib/performance/performance-focus";
-import { TEST_PROTOCOLS } from "@/lib/tests/test-protocols";
+import {
+  TEST_PROTOCOLS,
+  performanceTestKeyFromQuery,
+  type PerformanceTestKey,
+} from "@/lib/tests/test-protocols";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { MedicalDisclaimer } from "@/components/disclaimer";
 
 const EXTRA: Partial<
-  Record<
-    keyof PerformanceInput,
-    { body: string; bullets: string[] }
-  >
+  Record<PerformanceTestKey, { body: string; bullets: string[] }>
 > = {
   row2k: {
     body: "Ton 1 km rameur montre un excellent moteur court. Le 2 km permettra de mesurer ta capacité à tenir l’intensité plus longtemps.",
@@ -56,8 +56,8 @@ export function NextTestContent() {
   const retestAnchor = params.get("retestAnchor")?.trim() ?? "";
   const retestOk = retestAnchor.length > 0 && isUuid(retestAnchor);
   const raw = params.get("test") ?? "row2k";
-  const key = raw as keyof PerformanceInput;
-  const proto = TEST_PROTOCOLS[key] ?? TEST_PROTOCOLS.row2k;
+  const key = performanceTestKeyFromQuery(raw);
+  const proto = TEST_PROTOCOLS[key];
   const extra = EXTRA[key] ?? {
     body: proto.measures,
     bullets: [

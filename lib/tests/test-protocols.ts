@@ -1,8 +1,11 @@
 import type { PerformanceInput } from "@/lib/types";
 
+/** Clés de tests affichés dans l’app (hors `loadNotes`, métadonnée). */
+export type PerformanceTestKey = Exclude<keyof PerformanceInput, "loadNotes">;
+
 /** Contenu aligné sur le prompt 04 — protocoles standardisés V1 */
 export interface TestProtocol {
-  id: keyof PerformanceInput;
+  id: PerformanceTestKey;
   title: string;
   estimatedMinutes: string;
   category: string;
@@ -14,7 +17,7 @@ export interface TestProtocol {
   scoreImpact: string;
 }
 
-export const TEST_PROTOCOLS: Record<keyof PerformanceInput, TestProtocol> = {
+export const TEST_PROTOCOLS: Record<PerformanceTestKey, TestProtocol> = {
   row1k: {
     id: "row1k",
     title: "1 km rameur",
@@ -209,7 +212,8 @@ export const TEST_PROTOCOLS: Record<keyof PerformanceInput, TestProtocol> = {
       "Cible à hauteur standard (≈ 3 m homme / 2,7 m femme en compétition type).",
       "150 répétitions d’affilée ; squat puis lancer au mur, réception en squat.",
     ],
-    inputHint: "Temps total mm:ss pour terminer les 150 reps.",
+    inputHint:
+      "Temps total mm:ss pour les 150 reps. Tu peux noter la masse du ballon (kg) dans le champ optionnel sous le chrono.",
     commonMistakes: [
       "Ballon plus lourd que le standard sans le noter.",
       "Squat partiel pour aller plus vite.",
@@ -302,7 +306,8 @@ export const TEST_PROTOCOLS: Record<keyof PerformanceInput, TestProtocol> = {
       "Puis 30 burpees (poitrine au sol, saut ou extension en haut).",
       "Puis 150 double-unders ; chronomètre arrêté à la dernière corde valide.",
     ],
-    inputHint: "Temps total mm:ss du chipper complet.",
+    inputHint:
+      "Temps total mm:ss du chipper complet. Charge thruster : indique la somme des deux haltères (kg) dans le champ optionnel si tu t’écartes du standard.",
     commonMistakes: [
       "Charges différentes du standard sans les noter.",
       "Compter des simple-unders ou des demi-burpees.",
@@ -501,7 +506,7 @@ export const TEST_PROTOCOLS: Record<keyof PerformanceInput, TestProtocol> = {
       "Posture stable, pas de straps pour coller au standard.",
     ],
     inputHint:
-      "Format conseillé : mètres / secondes séparés par un slash, ex. 40/35 (= 40 m en 35 s).",
+      "Format conseillé : mètres / secondes séparés par un slash, ex. 40/35 (= 40 m en 35 s). Tu peux ajouter la charge totale portée (kg) dans le champ optionnel.",
     commonMistakes: [
       "Dos voûté ou pas rythme de marche instable.",
       "Straps qui masquent la limite de grip (hors protocole strict).",
@@ -519,7 +524,8 @@ export const TEST_PROTOCOLS: Record<keyof PerformanceInput, TestProtocol> = {
       "Même format que farmer : distance et temps mesurés (ex. 40 m en 50 s).",
       "Port en bear hug ou épaule, mais rester cohérent entre les tests.",
     ],
-    inputHint: "Mètres / secondes au format 40/50 (slash).",
+    inputHint:
+      "Mètres / secondes au format 40/50 (slash). Poids du sac (kg) possible dans le champ optionnel.",
     commonMistakes: [
       "Poids du sac non stable entre deux tests.",
       "Poser le sac trop souvent (fausse la vitesse).",
@@ -537,7 +543,8 @@ export const TEST_PROTOCOLS: Record<keyof PerformanceInput, TestProtocol> = {
       "Distance fixe 50 m (noter push ou pull dans ton carnet).",
       "Chronométrer du départ arrêté à la ligne d’arrivée.",
     ],
-    inputHint: "Format 50/temps en secondes, ex. 50/55 (= 50 m en 55 s).",
+    inputHint:
+      "Format 50/temps en secondes, ex. 50/55 (= 50 m en 55 s). Charge sur le sled (kg) en option.",
     commonMistakes: [
       "Distance différente de 50 m.",
       "Surface très glissante vs bitume (biaise les temps).",
@@ -753,7 +760,8 @@ export const TEST_PROTOCOLS: Record<keyof PerformanceInput, TestProtocol> = {
       "American swing : kettlebell au-dessus de la tête, bras tendus en haut.",
       "100 reps d’affilée, chronomètre arrêté à la 100e rep validée.",
     ],
-    inputHint: "Temps total mm:ss pour 100 swings.",
+    inputHint:
+      "Temps total mm:ss pour 100 swings. Poids de la kettlebell (kg) dans le champ optionnel si tu t’écartes du standard.",
     commonMistakes: [
       "Russian swing (hauteur épaule) au lieu d’american.",
       "Kettlebell plus lourd que le standard sans le noter.",
@@ -762,6 +770,19 @@ export const TEST_PROTOCOLS: Record<keyof PerformanceInput, TestProtocol> = {
   },
 };
 
+export function isPerformanceTestKey(s: string): s is PerformanceTestKey {
+  return Object.prototype.hasOwnProperty.call(TEST_PROTOCOLS, s);
+}
+
+/** Param `?test=` (ex. `/next-test`) : rejette les clés invalides (`loadNotes`, etc.). */
+export function performanceTestKeyFromQuery(
+  raw: string | null | undefined,
+  fallback: PerformanceTestKey = "row2k",
+): PerformanceTestKey {
+  const t = raw?.trim() ?? "";
+  return isPerformanceTestKey(t) ? t : fallback;
+}
+
 export const TEST_PROTOCOL_LIST = (
-  Object.keys(TEST_PROTOCOLS) as (keyof PerformanceInput)[]
+  Object.keys(TEST_PROTOCOLS) as PerformanceTestKey[]
 ).map((id) => TEST_PROTOCOLS[id]);

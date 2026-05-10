@@ -1,6 +1,7 @@
-import type { PerformanceInput } from "@/lib/types";
+import type { PerformanceInput, PerformanceLoadNotes } from "@/lib/types";
 import { parseFarmerCarry, parseMmSs } from "@/lib/scoring/parse";
 import { PERFORMANCE_FORM_FIELDS } from "@/lib/performance/performance-form-fields";
+import { perfLoadNoteFormKey } from "@/lib/performance/performance-load-notes";
 
 const CARRY_KEYS = new Set<keyof PerformanceInput>([
   "farmerCarry",
@@ -75,6 +76,26 @@ export function buildPerformanceInputFromForm(
     } else {
       (out as Record<string, string>)[f.key] = raw;
     }
+  }
+
+  const maxOptionalKg = 600;
+  const ln: PerformanceLoadNotes = {};
+  for (const f of PERFORMANCE_FORM_FIELDS) {
+    if (!f.optionalLoad) continue;
+    const formKey = perfLoadNoteFormKey(f.optionalLoad.noteKey);
+    const raw = values[formKey]?.trim();
+    if (!raw) continue;
+    const n = Number(raw.replace(",", "."));
+    if (!Number.isFinite(n) || n <= 0 || n > maxOptionalKg) {
+      return {
+        ok: false,
+        error: `« ${f.optionalLoad.label} » : entre un poids en kg (1–${maxOptionalKg}).`,
+      };
+    }
+    ln[f.optionalLoad.noteKey] = n;
+  }
+  if (Object.keys(ln).length > 0) {
+    out.loadNotes = ln;
   }
 
   return { ok: true, data: out };

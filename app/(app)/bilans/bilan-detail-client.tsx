@@ -19,6 +19,7 @@ import { LimiterCard } from "@/components/results/limiter-card";
 import { NextBestMoveCard } from "@/components/results/next-best-move-card";
 import { GoalsFourWeeksCard } from "@/components/results/goals-four-weeks-card";
 import { MedicalDisclaimer } from "@/components/disclaimer";
+import { PerformanceLoadNotesReadout } from "@/components/performance/performance-load-notes-readout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -175,6 +176,8 @@ export function BilanDetailClient({ id }: { id: string }) {
       </div>
 
       <ResultsRadarChart breakdown={result.breakdown} />
+
+      <PerformanceLoadNotesReadout loadNotes={assessment.performanceSnapshot.loadNotes} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <NextBestMoveCard plan={result.nextBestMovePlan} />

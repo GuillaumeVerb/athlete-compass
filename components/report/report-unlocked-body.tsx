@@ -9,6 +9,7 @@ import { DEMO_PERFORMANCE, DEMO_PROFILE } from "@/lib/mock-data";
 import { loadPerformance, loadProfile } from "@/lib/storage";
 import type { PurchaseProductKey } from "@/lib/future/cloud-types";
 import type { PerformanceInput, ScoreResult, UserProfile } from "@/lib/types";
+import { PerformanceLoadNotesReadout } from "@/components/performance/performance-load-notes-readout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -68,7 +69,7 @@ export function ReportUnlockedBody({
     );
   }
 
-  const { result, profile, source, savedAt } = payload;
+  const { result, profile, source, savedAt, perf } = payload;
 
   return (
     <div className="space-y-6">
@@ -178,6 +179,8 @@ export function ReportUnlockedBody({
           </CardContent>
         </Card>
       </div>
+
+      <PerformanceLoadNotesReadout loadNotes={perf.loadNotes} compact />
 
       <Card className="border-border bg-surface/60">
         <CardHeader className="pb-2">

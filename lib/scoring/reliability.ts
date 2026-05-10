@@ -1,5 +1,6 @@
-import type { PerformanceInput } from "@/lib/types";
+import type { PerformanceTestKey } from "@/lib/tests/test-protocols";
 import { TEST_PROTOCOLS } from "@/lib/tests/test-protocols";
+import type { PerformanceInput } from "@/lib/types";
 
 const REP_INT_KEYS = new Set<keyof PerformanceInput>([
   "pullups",
@@ -56,10 +57,11 @@ const WEIGHTS: Record<keyof PerformanceInput, number> = {
   sledCarry: 3,
   hollowHold: 3,
   lSitHold: 2,
+  loadNotes: 0,
 };
 
-/** Ordre de priorité pour « prochain test » (clés PerformanceInput) */
-export const TEST_FILL_PRIORITY: (keyof PerformanceInput)[] = [
+/** Ordre de priorité pour « prochain test » */
+export const TEST_FILL_PRIORITY: PerformanceTestKey[] = [
   "row1k",
   "skiErg500",
   "run400m",
@@ -203,16 +205,15 @@ function isTestFilled(key: keyof PerformanceInput, perf: PerformanceInput) {
 export function listMissingTestTitles(perf: PerformanceInput): string[] {
   const out: string[] = [];
   for (const key of Object.keys(WEIGHTS) as (keyof PerformanceInput)[]) {
+    if (WEIGHTS[key] <= 0) continue;
     if (!isTestFilled(key, perf)) {
-      out.push(TEST_PROTOCOLS[key].title);
+      out.push(TEST_PROTOCOLS[key as PerformanceTestKey].title);
     }
   }
   return out;
 }
 
-export function listMissingTestKeys(
-  perf: PerformanceInput,
-): (keyof PerformanceInput)[] {
+export function listMissingTestKeys(perf: PerformanceInput): PerformanceTestKey[] {
   return TEST_FILL_PRIORITY.filter((k) => !isTestFilled(k, perf));
 }
 

@@ -1,4 +1,4 @@
-import type { PerformanceInput } from "@/lib/types";
+import type { PerformanceTestKey } from "@/lib/tests/test-protocols";
 
 export type SessionKind =
   | "force_upper"
@@ -30,7 +30,7 @@ export interface PlanSession {
   shortVersion: string;
   substitution?: string;
   /** Champs `/performances` à saisir en lien avec cette séance. */
-  relatedPerformanceKeys?: (keyof PerformanceInput)[];
+  relatedPerformanceKeys?: PerformanceTestKey[];
 }
 
 export interface PlanWeek {
