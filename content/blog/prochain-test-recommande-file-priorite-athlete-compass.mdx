@@ -1,0 +1,69 @@
+---
+title: "Prochain test recommandé : file de priorité et cas « bilan déjà rempli »"
+description: "Comment Athlete Compass choisit le prochain test : ordre fixe des champs manquants, puis rameur 2 km vs 1 km selon le cardio intense — et pourquoi ce n’est pas le Next Best Move."
+date: "2026-05-29"
+category: "Concept"
+tags:
+  - prochain test
+  - fiabilité
+  - bilan
+  - Hybrid Score
+primaryKeyword: "prochain test recommandé bilan"
+faq:
+  - question: "Pourquoi l’app me propose un test qui ne colle pas à mon ressenti ?"
+    answer: "Le **prochain test** est **déterministe** : il suit une **file de priorité** codée pour **remplir les trous** utiles au modèle avant d’« optimiser » comme un coach humain."
+  - question: "C’est la même chose que le Next Best Move ?"
+    answer: "**Non** : le **Next Best Move** oriente plutôt une **action d’entraînement** sur quelques semaines (limiteur) ; le **prochain test** pousse souvent la **saisie** ou le **retest** d’un repère manquant — voir [Next Best Move](/blog/next-best-move-plan-minimal-comprendre-athlete-compass)."
+  - question: "Dans quel ordre les tests manquants sont-ils proposés ?"
+    answer: "L’app parcourt une **liste fixe** (ex. **1 km rameur** et **500 m SkiErg** très tôt, puis endurance, cardio machines, résistance, force, carries…) et te propose le **premier** de cette liste qui est encore **vide**."
+  - question: "Si tout est déjà rempli, que se passe-t-il ?"
+    answer: "Quand **aucun** test prioritaire n’est manquant, la logique peut orienter vers un **2 km rameur** si ton pilier **cardio intense** est déjà **élevé** (seuil interne), sinon vers le **1 km rameur** — toujours pour **ancrer** ou **retester** un pilier cardio clé."
+  - question: "Où voir la page dédiée dans l’app ?"
+    answer: "Écran **Prochain test** (URL du type `/next-test?test=…`) avec le protocole et un lien vers **[Performances](/performances)** pour saisir."
+  - question: "C’est médical ?"
+    answer: "Non."
+---
+
+## Réponse courte
+
+Le **prochain test recommandé** dans **Athlete Compass** n’est pas une intuition magique : c’est une **file d’attente de saisie** (et parfois de **retest**) calculée de façon **fixe** à partir de ce que tu as **déjà** ou **pas** rempli.
+
+1. **S’il manque** au moins un test de la liste interne de priorité → l’app te propose le **premier manquant** de cette liste (avec le **titre** du protocole standard).
+2. **Si tout ce bloc prioritaire est rempli** → la logique peut basculer vers un **2 km rameur** ou un **1 km rameur** selon une règle simple : si ton pilier **cardio intense** est déjà **≥ 65** (échelle du bilan), l’app pousse plutôt le **2 km** ; sinon le **1 km** — pour **ancrer** ou **retester** un repère rameur clé.
+
+Ça explique pourquoi le libellé peut parfois **contredire ton instinct** : l’objectif est souvent **documenter** le bilan, pas seulement confirmer ce que tu aimes déjà tester.
+
+## File de priorité : à quoi ça ressemble concrètement ?
+
+Sans entrer dans l’implémentation ligne par ligne, l’idée est :
+
+- **D’abord** les **gros piliers** « moteur » et **compléments cardio** (rameur 1 km, SkiErg 500, **400 m**, **2 km** rameur, **5 km**, etc.).
+- **Puis** la **profondeur** : autres distances / ergs, **hybrides** type wall ball ou chipper, **force**, **unilatéral**, **carries** (farmer, sandbag, sled), **gainage**.
+
+L’ordre est **toujours le même** pour tout le monde : ce qui change, c’est **où tu en es** dans la liste. D’où l’analogie **file d’attente** : tu ne « passes » au suivant qu’après avoir **renseigné** (ou ignoré consciemment) ce qui précède.
+
+## Lien avec la fiabilité
+
+Une **fiabilité** plus haute demande en pratique **plusieurs familles** de tests — voir [fiabilité : pourquoi plusieurs tests](/blog/fiabilite-bilan-tests-pourquoi-remplir-athlete-compass). Le **prochain test** aide à **répartir** cet effort sans que tu aies à deviner « quoi remplir mardi soir ».
+
+## Prochain test ≠ Next Best Move
+
+| | **Prochain test** | **Next Best Move** |
+| --- | --- | --- |
+| **But principal** | Combler des **données** manquantes ou **retester** un pilier clé | Proposer une **action d’entraînement** liée au **limiteur** |
+| **Lecture** | File **déterministe** | Synthèse **profil + limiteur** |
+| **Article** | Celui-ci | [Next Best Move & plan minimal](/blog/next-best-move-plan-minimal-comprendre-athlete-compass) |
+
+Tu peux utiliser les **deux** : la file pour **remplir** le bilan, le **Next Best Move** pour **t’entraîner** intelligemment entre deux chronos.
+
+## Saisie : formats à deux valeurs
+
+Certains tests demandent **distance et temps** sur une seule ligne (**slash**) — voir le guide [saisie deux valeurs](/blog/performances-saisie-deux-valeurs-slash-guide).
+
+## CTA Athlete Compass
+
+Ouvre **[Résultats](/results)** pour le contexte, **[Prochain test](/next-test)** pour le détail du protocole, puis **[Performances](/performances)** pour saisir.
+
+---
+
+*Estimations de performance — pas un diagnostic médical.*

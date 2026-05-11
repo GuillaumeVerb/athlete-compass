@@ -1,0 +1,76 @@
+---
+title: "Performances : quand saisir deux valeurs sur un même test (slash, mètres, secondes…)"
+description: "Guide des formats Athlete Compass : farmer, sandbag, sled (distance / temps), Bulgarian split squat (somme des haltères), et tests à une seule valeur pour ne pas se tromper entre deux retests."
+date: "2026-05-30"
+category: "Concept"
+tags:
+  - performances
+  - saisie
+  - farmer carry
+  - sled
+  - hybride
+primaryKeyword: "saisie performance deux valeurs"
+faq:
+  - question: "Pourquoi un slash au lieu de deux champs ?"
+    answer: "Pour garder un **champ unique** par test, lisible et **stable** entre mobile et bureau — le **/** sépare deux nombres selon une convention **fixe** par exercice."
+  - question: "Farmer carry : j’écris quoi exactement ?"
+    answer: "**Mètres / secondes** au format `40/35` (= **40 m** en **35 s**). Garde la **même distance** d’un retest à l’autre pour comparer."
+  - question: "Sandbag carry ?"
+    answer: "Même idée : **mètres / secondes**, ex. `40/50`."
+  - question: "Sled 50 m ?"
+    answer: "Distance fixe **50 m** : format **`50/temps en secondes`**, ex. `50/55` pour **55 s** sur **50 m**."
+  - question: "Bulgarian split squat : ce n’est pas un slash ?"
+    answer: "Correct : tu saisis la **somme en kg des deux haltères** utilisée pour **8 reps propres par jambe** (ex. 2×22,5 kg → **45**), un seul nombre."
+  - question: "Echo Bike : calories et temps mélangés ?"
+    answer: "Non : **1 min calories** = un **nombre entier** de calories ; **10 cal** ou **30 cal** = **temps mm:ss** pour atteindre le quota affiché — ce sont des **tests différents**."
+  - question: "C’est médical ?"
+    answer: "Non."
+---
+
+## Réponse courte
+
+Dans **Athlete Compass**, la plupart des tests demandent **une** mesure (chrono **mm:ss**, **kg**, **reps**…). Quelques épreuves de **portage** ou de **translation** demandent **deux nombres** dans **un seul champ**, séparés par un **`/`** : en général **distance en mètres** puis **temps en secondes** — sauf mention contraire dans l’**indice de saisie** du test dans l’app.
+
+L’objectif est simple : **retester pareil**, pour que le moteur compare **des pommes avec des pommes**.
+
+## Les carries : mètres / secondes
+
+Ces trois tests partagent la logique **« combien de mètres »** + **« en combien de secondes »** (le sled fixe la distance à **50 m** côté protocole) :
+
+| Test | Exemple de saisie | Lecture |
+| --- | --- | --- |
+| **Farmer carry** | `40/35` | **40 m** en **35 s** |
+| **Sandbag carry** | `40/50` | **40 m** en **50 s** |
+| **Sled 50 m** | `50/55` | **50 m** en **55 s** |
+
+Repères poids sur **20 m** côté lecture « haltères » : [farmer carry — repères](/blog/farmer-carry-poids-reperes-20m-amateur). Pour la **saisie in-app**, ce qui compte en plus du poids réel, c’est la **paire distance / temps** si tu veux exploiter pleinement le format hybride du test.
+
+## Force : un nombre qui résume « les deux haltères »
+
+Le **Bulgarian split squat ×8 / jambe** n’utilise **pas** le slash : tu entres la **somme des deux haltères** en **kg** (ex. **45** pour **2×22,5**), comme indiqué dans le protocole — pour que **gauche et droite** soient décrites par **une charge équivalente** simple.
+
+## Ce qui ressemble à « deux infos » mais reste un seul champ
+
+- **Wall ball ×150**, **50 burpees**, **100 air squats**, **chipper** hybride → **un** chrono **mm:ss** pour tout le bloc.
+- **Rameur / course / SkiErg** → **un** temps pour la **distance imposée** du test.
+- **Echo Bike** — trois variantes distinctes : **calories en 1 min** (nombre entier) **ou** temps pour **10** ou **30** calories (chrono), pas un mélange dans un même champ.
+
+## Erreurs classiques à éviter
+
+1. **Inverser** mètres et secondes (ex. mettre les **secondes** avant les **mètres** alors que le test attend **m/s**).
+2. **Changer de distance** entre deux saisies alors que tu compares tes progrès.
+3. **Mélanger** deux formats (ex. temps en **mm:ss** là où l’app attend des **secondes** après le slash pour le sled).
+
+En cas de doute, ouvre **[Performances](/performances)** : chaque ligne de test affiche l’**indice** aligné sur les protocoles (même vocabulaire que la page **[Prochain test](/next-test)**).
+
+## Lien avec la fiabilité et le prochain test
+
+Mieux tu **standardises** tes saisies, plus tes **retests** ont de sens pour la **fiabilité** du bilan — voir [fiabilité](/blog/fiabilite-bilan-tests-pourquoi-remplir-athlete-compass) et [prochain test recommandé](/blog/prochain-test-recommande-file-priorite-athlete-compass).
+
+## CTA Athlete Compass
+
+[**Performances**](/performances) → respecter le format affiché → **[Résultats](/results)** pour la lecture agrégée.
+
+---
+
+*Estimations de performance — pas un diagnostic médical.*
