@@ -135,12 +135,17 @@ export function importStepsRows(
 /** Ligne renvoyée par GET /api/daily/steps (synchro descendante). */
 export type CloudDailyStepRow = {
   day: string;
-  steps: number;
+  /** `null` = objectif seul côté serveur — ne remplace pas les pas locaux pour ce jour. */
+  steps: number | null;
   stepsGoal: number;
   updatedAt: string;
 };
 
-/** Fusion pure (tests) : le serveur fait foi pour les jours fournis ; objectif = ligne la plus récente. */
+/**
+ * Fusion pure (tests) : pour chaque jour, si `steps` est renseigné côté serveur il remplace le local ;
+ * sinon les pas locaux pour ce jour sont conservés. L’objectif global reprend la valeur de la ligne
+ * au `updatedAt` le plus récent.
+ */
 export function applyCloudStepRowsToStoreState(
   prev: DailyActivityStoreV1,
   rows: CloudDailyStepRow[],
@@ -151,11 +156,15 @@ export function applyCloudStepRowsToStoreState(
   let bestTs = "";
   for (const r of rows) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(r.day)) continue;
-    if (!Number.isFinite(r.steps) || r.steps < 0 || r.steps > 300_000) continue;
-    const g = normalizeGoal(r.stepsGoal);
-    stepsByDay[r.day] = Math.round(r.steps);
     const ts = r.updatedAt;
-    if (typeof ts === "string" && ts > bestTs) {
+    if (typeof ts !== "string" || ts.length === 0) continue;
+
+    if (r.steps != null && Number.isFinite(r.steps) && r.steps >= 0 && r.steps <= 300_000) {
+      stepsByDay[r.day] = Math.round(r.steps);
+    }
+
+    const g = normalizeGoal(r.stepsGoal);
+    if (ts > bestTs) {
       bestTs = ts;
       bestGoal = g;
     }
@@ -165,7 +174,8 @@ export function applyCloudStepRowsToStoreState(
 
 /**
  * Applique une réponse cloud au store local (V2 synchro descendante).
- * Les jours présents dans `rows` remplacent la valeur locale pour ces dates.
+ * Les jours avec `steps` non null côté serveur remplacent le local pour ces dates ;
+ * les lignes objectif seul mettent à jour `stepsGoal` sans effacer les pas locaux du jour.
  */
 export function mergeDailyActivityFromCloud(
   profile: UserProfile,

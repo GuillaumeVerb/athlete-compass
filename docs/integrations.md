@@ -5,7 +5,7 @@ Cette page décrit les **intégrations prévues** (pas implémentées en V1). L�
 ## Principes
 
 - **V1 / V1.5** : saisie manuelle des pas du jour + objectif par défaut **10 000** (`lib/daily/daily-activity-storage.ts`, page **`/daily`**), reste démo pour sommeil / récupération (`lib/mock/daily.ts`). Pas d’inférence depuis le profil. Après **Profil → Performances**, l’app envoie vers **`/daily`** comme hub quotidien (voir aussi prompts agrégés §13 `athlete_compass_prompts_ordre_complet.md`).
-- **V2 (web, compte Supabase)** : synchro optionnelle avec la table `daily_steps` — `GET /api/daily/steps` (fenêtre ~45 jours) fusionne dans le navigateur au chargement de **`/daily`** et **`/results`** ; `POST /api/daily/steps` et `POST /api/daily/steps/batch` après saisie ou import CSV. Sans session ou sans admin Supabase, tout reste **local uniquement**.
+- **V2 (web, compte Supabase)** : synchro optionnelle avec la table `daily_steps` — `GET /api/daily/steps` (fenêtre ~45 jours) fusionne dans le navigateur au chargement de **`/daily`** et **`/results`** ; `POST /api/daily/steps` et `POST /api/daily/steps/batch` après saisie ou import CSV. Sans session ou sans admin Supabase, tout reste **local uniquement**. Le pull est aussi déclenché une fois au chargement de l’app **`(app)`** si une session existe. **`steps`** peut être `NULL` en base pour enregistrer **l’objectif seul** pour un jour (migration `010_daily_steps_steps_nullable.sql`).
 - **V6 (voir [`ROADMAP.md`](../ROADMAP.md))** : synchronisation optionnelle pour enrichir readiness, sommeil et charge — jamais obligatoire au diagnostic initial.
 
 ## Périmètre par fournisseur (indicatif)

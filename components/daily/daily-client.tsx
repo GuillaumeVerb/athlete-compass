@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Activity, ArrowRight, BedDouble, Footprints, HeartPulse, Zap } from "lucide-react";
 import {
   DEFAULT_STEPS_GOAL,
+  DAILY_ACTIVITY_STORAGE_CHANGED_EVENT,
   importStepsRows,
   loadDailyActivityStore,
   patchDailyActivityStore,
@@ -14,6 +15,8 @@ import {
 import { enrichReadinessWithDailySteps } from "@/lib/daily/enrich-readiness-with-steps";
 import { parseStepsCsv } from "@/lib/daily/import-steps-csv";
 import { postDailyStepsToCloud, postDailyStepsBatchToCloud } from "@/lib/daily/daily-steps-api-client";
+import { formatLastPullFr, readDailyStepsSyncMeta } from "@/lib/daily/daily-steps-sync-meta";
+import { runPullDailyStepsFromCloud } from "@/lib/daily/daily-steps-sync";
 import { useDailyStepsCloudPull } from "@/lib/daily/use-daily-steps-cloud-pull";
 import { activityHintFromStepsStore } from "@/lib/daily/steps-activity-hint";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +43,13 @@ import { hasAnyLoadNotes } from "@/lib/performance/load-notes-display";
 import { MobileStickyQuickBar } from "@/components/layout/mobile-sticky-quick-bar";
 
 const NEW_DAY_DISMISS_KEY = "ac_daily_new_day_dismissed";
+
+function lastPullErrorHint(code: string | null): string | null {
+  if (!code) return null;
+  if (code === "no_session") return "Connecte-toi pour synchroniser tes pas avec le cloud.";
+  if (code === "skipped_admin") return "Sauvegarde cloud indisponible (configuration serveur).";
+  return "La dernière synchro a échoué. Réessaie plus tard.";
+}
 
 function formatSleep(h: number): string {
   const hh = Math.floor(h);
@@ -106,12 +116,14 @@ export function DailyClient() {
   const [csvImportError, setCsvImportError] = useState<string | null>(null);
   const [showNewDayTip, setShowNewDayTip] = useState(false);
   const csvInputRef = useRef<HTMLInputElement>(null);
+  const [syncPulse, setSyncPulse] = useState(0);
+  const [syncPulling, setSyncPulling] = useState(false);
 
   const bumpActivityRevision = useCallback(() => {
     setActivityRevision((n) => n + 1);
   }, []);
 
-  useDailyStepsCloudPull(ready, bumpActivityRevision);
+  useDailyStepsCloudPull(ready, bumpActivityRevision, () => setSyncPulse((n) => n + 1));
 
   const bundle = useMemo(() => {
     void ready; // second run after hydration so storage reads match the client
@@ -198,6 +210,18 @@ export function DailyClient() {
   const todaySteps = dailyActivity.stepsByDay[dayKey];
   const stepsGoalDisplay = dailyActivity.stepsGoal;
 
+  const syncMeta = useMemo(
+    () => (ready ? readDailyStepsSyncMeta() : { lastPullAtIso: null, lastPullError: null }),
+    [ready, syncPulse],
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const fn = () => bumpActivityRevision();
+    window.addEventListener(DAILY_ACTIVITY_STORAGE_CHANGED_EVENT, fn);
+    return () => window.removeEventListener(DAILY_ACTIVITY_STORAGE_CHANGED_EVENT, fn);
+  }, [bumpActivityRevision]);
+
   const showSparseHint =
     !performancesAreDemo && userFilledTests > 0 && userFilledTests < 3;
 
@@ -227,14 +251,19 @@ export function DailyClient() {
     }
     const next = patchDailyActivityStore(profile, patch);
     setActivityRevision((n) => n + 1);
-    const stepsForDay = next.stepsByDay[dayKey];
-    if (typeof stepsForDay === "number") {
-      void postDailyStepsToCloud({
-        day: dayKey,
-        steps: stepsForDay,
-        stepsGoal: next.stepsGoal,
-      });
-    }
+    void postDailyStepsToCloud({
+      day: dayKey,
+      steps: next.stepsByDay[dayKey] ?? null,
+      stepsGoal: next.stepsGoal,
+    });
+  }
+
+  async function resyncStepsFromCloud() {
+    setSyncPulling(true);
+    const r = await runPullDailyStepsFromCloud(profile);
+    setSyncPulling(false);
+    setSyncPulse((n) => n + 1);
+    if (r.ok && r.changed) bumpActivityRevision();
   }
 
   function onCsvFileChange(ev: ChangeEvent<HTMLInputElement>) {
@@ -430,8 +459,31 @@ export function DailyClient() {
         <p className="mt-1 text-xs leading-relaxed text-muted">
           En V1, pas d&apos;API santé : saisis les pas affichés par ta montre ou ton téléphone. L&apos;objectif
           par défaut est <strong className="text-foreground/90">10 000 pas</strong> (modifiable). Une synchro
-          optionnelle (montre, agrégateur santé) est prévue dans la roadmap produit. Avec un compte connecté et Supabase configuré, les pas peuvent aussi être <strong className="text-foreground/90">récupérés depuis le cloud</strong> au chargement de la page et après import CSV (synchro ascendante par lots).
+          optionnelle (montre, agrégateur santé) est prévue dans la roadmap produit. Avec un compte connecté et Supabase configuré, les pas peuvent aussi être <strong className="text-foreground/90">récupérés depuis le cloud</strong> au chargement de l&apos;app ou de cette page ; tu peux enregistrer <strong className="text-foreground/90">l&apos;objectif seul</strong> (sans pas) pour le jour courant. Import CSV : synchro ascendante par lots.
         </p>
+        <div className="mt-3 flex flex-col gap-2 rounded-xl border border-border/80 bg-surface/40 px-3 py-3 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            Dernière synchro cloud :{" "}
+            <span className="font-medium text-foreground">
+              {ready ? formatLastPullFr(syncMeta.lastPullAtIso) : "—"}
+            </span>
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="shrink-0 rounded-lg"
+            disabled={!ready || syncPulling}
+            onClick={() => void resyncStepsFromCloud()}
+          >
+            {syncPulling ? "Synchronisation…" : "Resynchroniser"}
+          </Button>
+        </div>
+        {!syncPulling && ready && lastPullErrorHint(syncMeta.lastPullError) ? (
+          <p className="mt-2 text-[11px] leading-relaxed text-destructive/90">
+            {lastPullErrorHint(syncMeta.lastPullError)}
+          </p>
+        ) : null}
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="daily-steps" className="text-xs text-muted">

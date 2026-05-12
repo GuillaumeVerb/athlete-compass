@@ -24,4 +24,22 @@ describe("daily-activity-storage", () => {
     expect(next.stepsByDay["2026-05-03"]).toBe(5000);
     expect(next.stepsGoal).toBe(12_000);
   });
+
+  it("applyCloudStepRowsToStoreState conserve les pas locaux si le serveur n’envoie que l’objectif", () => {
+    const prev: DailyActivityStoreV1 = {
+      v: 1,
+      stepsByDay: { "2026-05-01": 5000 },
+      stepsGoal: 8000,
+    };
+    const next = applyCloudStepRowsToStoreState(prev, [
+      {
+        day: "2026-05-01",
+        steps: null,
+        stepsGoal: 12_000,
+        updatedAt: "2026-05-02T10:00:00.000Z",
+      },
+    ]);
+    expect(next.stepsByDay["2026-05-01"]).toBe(5000);
+    expect(next.stepsGoal).toBe(12_000);
+  });
 });

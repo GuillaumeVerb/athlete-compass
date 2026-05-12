@@ -86,7 +86,9 @@ export function ResultsClient() {
     setActivityTick((t) => t + 1);
   }, []);
 
-  useDailyStepsCloudPull(payload != null, bumpActivityTick);
+  useDailyStepsCloudPull(payload != null, bumpActivityTick, () =>
+    setActivityTick((t) => t + 1),
+  );
 
   useEffect(() => {
     const fn = () => setActivityTick((t) => t + 1);

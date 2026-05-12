@@ -51,12 +51,17 @@ export async function GET(req: Request) {
     );
   }
 
-  const rows = (data ?? []).map((r) => ({
-    day: r.day as string,
-    steps: r.steps as number,
-    stepsGoal: r.steps_goal as number,
-    updatedAt: r.updated_at as string,
-  }));
+  const rows = (data ?? []).map((r) => {
+    const raw = r.steps;
+    const steps =
+      raw === null || raw === undefined ? null : typeof raw === "number" ? raw : Number(raw);
+    return {
+      day: r.day as string,
+      steps: Number.isFinite(steps as number) ? (steps as number) : null,
+      stepsGoal: Number(r.steps_goal),
+      updatedAt: r.updated_at as string,
+    };
+  });
 
   return NextResponse.json({ ok: true, rows });
 }
