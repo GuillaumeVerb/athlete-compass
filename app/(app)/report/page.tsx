@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { LockedCard } from "@/components/premium/locked-card";
 import { PricingCard } from "@/components/pricing/pricing-card";
+import { ReportPostPurchaseBanner } from "@/components/report/report-post-purchase-banner";
 import { ReportUnlockedBody } from "@/components/report/report-unlocked-body";
 import { MedicalDisclaimer } from "@/components/disclaimer";
 import { fetchPremiumReportMeta } from "@/lib/purchase/fetch-premium-report-meta";
@@ -98,10 +99,13 @@ export default async function ReportPage() {
       </div>
 
       {unlock ? (
-        <ReportUnlockedBody
-          productKey={unlock.productKey}
-          serverSnapshot={serverSnapshot}
-        />
+        <>
+          <ReportPostPurchaseBanner />
+          <ReportUnlockedBody
+            productKey={unlock.productKey}
+            serverSnapshot={serverSnapshot}
+          />
+        </>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           <LockedCard

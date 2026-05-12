@@ -31,6 +31,8 @@ Guide technique détaillé (commandes, curl, fichiers) : **[`V2_SETUP.md`](V2_SE
 
 ## Resend (email de confirmation post-achat)
 
+Peut être **reporté** : le flux paiement → cookie → `/report` fonctionne sans Resend ; un bandeau sur le rapport rappelle l’accès navigateur tant que l’email n’est pas branché.
+
 - [ ] Compte [Resend](https://resend.com/) → clé API.
 - [ ] Renseigner :
   - [ ] `RESEND_API_KEY`

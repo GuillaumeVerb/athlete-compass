@@ -59,6 +59,7 @@ export async function GET(req: Request) {
 
   const token = signReportUnlock(session.id, row.product_key);
   const ok = new URL("/report", base);
+  ok.searchParams.set("unlocked", "1");
   const res = NextResponse.redirect(ok);
 
   if (token) {
