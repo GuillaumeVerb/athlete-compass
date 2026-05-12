@@ -13,6 +13,8 @@ export type ScoreSnapshotEntry = {
   hybridScore: number;
   reliabilityPct: number;
   realAge: number;
+  /** Absent sur les tout premiers snapshots (avant ce champ) ; requis pour la courbe âge athl. */
+  athleticAge?: number;
   goal: PrimaryGoal;
 };
 
@@ -73,6 +75,7 @@ export function recordScoreSnapshot(profile: UserProfile, perf: PerformanceInput
     hybridScore: r.hybridScore,
     reliabilityPct: r.reliabilityPct,
     realAge: r.realAge,
+    athleticAge: r.athleticAge,
     goal: profile.goal,
   };
   const prev = loadScoreSnapshots();

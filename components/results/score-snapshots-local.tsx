@@ -30,6 +30,7 @@ function buildChartSeries(entries: ScoreSnapshotEntry[]) {
       t: new Date(e.savedAt).getTime(),
       hybrid: e.hybridScore,
       reliability: e.reliabilityPct,
+      athletic: typeof e.athleticAge === "number" && Number.isFinite(e.athleticAge) ? e.athleticAge : null,
     }));
 }
 
@@ -39,6 +40,13 @@ export function ScoreSnapshotsLocalSection({ entries }: { entries: ScoreSnapshot
   if (entries.length === 0) return null;
   const slice = entries.slice(0, 8);
   const showChart = chartData.length >= 2;
+  const athleticVals = useMemo(
+    () => chartData.map((d) => d.athletic).filter((x): x is number => x != null),
+    [chartData],
+  );
+  const showAthleticChart = athleticVals.length >= 2;
+  const athMin = showAthleticChart ? Math.floor(Math.min(...athleticVals) - 1) : 0;
+  const athMax = showAthleticChart ? Math.ceil(Math.max(...athleticVals) + 1) : 1;
 
   const tickDate = (ts: number) =>
     new Date(ts).toLocaleDateString("fr-FR", { month: "short", day: "numeric" });
@@ -67,65 +75,122 @@ export function ScoreSnapshotsLocalSection({ entries }: { entries: ScoreSnapshot
 
       {showChart ? (
         <div
-          className="rounded-2xl border border-border bg-surface/50 p-4 sm:p-5"
-          role="img"
-          aria-label="Courbe Hybrid Score et fiabilité dans le temps"
+          className="space-y-6 rounded-2xl border border-border bg-surface/50 p-4 sm:p-5"
+          role="group"
+          aria-label="Courbes d’évolution du score enregistré localement"
         >
-          <p className="text-[11px] font-medium uppercase tracking-wider text-muted">
-            Hybrid & fiabilité (%)
-          </p>
-          <div className="mt-3 h-52 w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis
-                  type="number"
-                  dataKey="t"
-                  domain={["dataMin", "dataMax"]}
-                  tickFormatter={(v) => tickDate(v as number)}
-                  stroke="rgba(255,255,255,0.35)"
-                  fontSize={10}
-                  tickMargin={6}
-                />
-                <YAxis
-                  domain={[0, 100]}
-                  stroke="rgba(255,255,255,0.35)"
-                  fontSize={10}
-                  width={32}
-                />
-                <Tooltip
-                  labelFormatter={(v) => tooltipLabel(v as number)}
-                  formatter={(value, name) => {
-                    const suffix = name === "Fiabilité" ? " %" : "";
-                    return [`${value ?? ""}${suffix}`, name];
-                  }}
-                  contentStyle={{
-                    background: "rgba(18,18,22,0.96)",
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    borderRadius: "12px",
-                    fontSize: "12px",
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="hybrid"
-                  stroke="rgba(82,255,114,0.9)"
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: "rgba(82,255,114,0.95)" }}
-                  name="Hybrid"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="reliability"
-                  stroke="rgba(147, 197, 253, 0.95)"
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: "rgba(147, 197, 253, 0.95)" }}
-                  name="Fiabilité"
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          <div role="img" aria-label="Courbe Hybrid Score et fiabilité dans le temps">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted">
+              Hybrid & fiabilité (%)
+            </p>
+            <div className="mt-3 h-52 w-full min-w-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis
+                    type="number"
+                    dataKey="t"
+                    domain={["dataMin", "dataMax"]}
+                    tickFormatter={(v) => tickDate(v as number)}
+                    stroke="rgba(255,255,255,0.35)"
+                    fontSize={10}
+                    tickMargin={6}
+                  />
+                  <YAxis
+                    domain={[0, 100]}
+                    stroke="rgba(255,255,255,0.35)"
+                    fontSize={10}
+                    width={32}
+                  />
+                  <Tooltip
+                    labelFormatter={(v) => tooltipLabel(v as number)}
+                    formatter={(value, name) => {
+                      const suffix = name === "Fiabilité" ? " %" : "";
+                      return [`${value ?? ""}${suffix}`, name];
+                    }}
+                    contentStyle={{
+                      background: "rgba(18,18,22,0.96)",
+                      border: "1px solid rgba(255,255,255,0.12)",
+                      borderRadius: "12px",
+                      fontSize: "12px",
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="hybrid"
+                    stroke="rgba(82,255,114,0.9)"
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: "rgba(82,255,114,0.95)" }}
+                    name="Hybrid"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="reliability"
+                    stroke="rgba(147, 197, 253, 0.95)"
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: "rgba(147, 197, 253, 0.95)" }}
+                    name="Fiabilité"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-          <p className="mt-2 text-xs text-muted">
+
+          {showAthleticChart ? (
+            <div role="img" aria-label="Courbe âge athlétique dans le temps">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted">
+                Âge athlétique (ans)
+              </p>
+              <div className="mt-3 h-44 w-full min-w-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                    <XAxis
+                      type="number"
+                      dataKey="t"
+                      domain={["dataMin", "dataMax"]}
+                      tickFormatter={(v) => tickDate(v as number)}
+                      stroke="rgba(255,255,255,0.35)"
+                      fontSize={10}
+                      tickMargin={6}
+                    />
+                    <YAxis
+                      domain={[athMin, athMax]}
+                      stroke="rgba(255,255,255,0.35)"
+                      fontSize={10}
+                      width={32}
+                    />
+                    <Tooltip
+                      labelFormatter={(v) => tooltipLabel(v as number)}
+                      formatter={(value) => [`${value ?? ""}`, "Âge athl."]}
+                      contentStyle={{
+                        background: "rgba(18,18,22,0.96)",
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        borderRadius: "12px",
+                        fontSize: "12px",
+                      }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="athletic"
+                      stroke="rgba(251, 191, 36, 0.95)"
+                      strokeWidth={2}
+                      connectNulls={false}
+                      dot={{ r: 3, fill: "rgba(251, 191, 36, 0.95)" }}
+                      name="Âge athl."
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs leading-relaxed text-muted">
+              Courbe âge athlétique : enregistre à nouveau tes performances (au moins deux points avec
+              cette donnée) — les tout premiers snapshots n’avaient pas encore ce champ.
+            </p>
+          )}
+
+          <p className="text-xs text-muted">
             Axe temps : du plus ancien au plus récent parmi les points enregistrés.
           </p>
         </div>
@@ -143,6 +208,12 @@ export function ScoreSnapshotsLocalSection({ entries }: { entries: ScoreSnapshot
             <span className="font-medium text-foreground">
               Hybrid <span className="text-neon">{row.hybridScore}</span>
               <span className="text-muted"> · fiabilité {row.reliabilityPct} %</span>
+              {typeof row.athleticAge === "number" ? (
+                <span className="text-muted">
+                  {" "}
+                  · âge athl. <span className="text-foreground/90">{row.athleticAge}</span> ans
+                </span>
+              ) : null}
             </span>
           </li>
         ))}

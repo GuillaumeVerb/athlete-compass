@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { mergeScoreSnapshotEntries, type ScoreSnapshotEntry } from "./score-snapshots";
 
-const e = (savedAt: string, hybrid: number, rel: number): ScoreSnapshotEntry => ({
+const e = (savedAt: string, hybrid: number, rel: number, athleticAge = 32): ScoreSnapshotEntry => ({
   savedAt,
   hybridScore: hybrid,
   reliabilityPct: rel,
   realAge: 30,
+  athleticAge,
   goal: "crossfit",
 });
 
