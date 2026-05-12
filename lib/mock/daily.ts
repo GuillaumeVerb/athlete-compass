@@ -11,9 +11,8 @@ export const MOCK_DAILY_WELLNESS: ReadinessInput = {
   weeklyTrainingLoad: "normal",
 };
 
+/** Récupération démo (pas de capteur). Les pas du jour viennent de `lib/daily/daily-activity-storage.ts`. */
 export const MOCK_DAILY_ACTIVITY = {
-  steps: 8900,
-  stepsGoal: 10_000,
   recoveryPct: 68,
   recoveryLabel: "moyenne" as const,
 };

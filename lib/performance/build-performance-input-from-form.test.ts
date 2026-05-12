@@ -58,4 +58,16 @@ describe("buildPerformanceInputFromForm (onglet Perf)", () => {
     });
     expect(r.ok).toBe(false);
   });
+
+  it("accepte somme haltères chipper optionnelle", () => {
+    const r = buildPerformanceInputFromForm({
+      hybridDbChipper: "10:00",
+      [perfLoadNoteFormKey("hybridDbChipperDbTotalKg")]: "40",
+    });
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.data.hybridDbChipper).toBe("10:00");
+      expect(r.data.loadNotes?.hybridDbChipperDbTotalKg).toBe(40);
+    }
+  });
 });

@@ -4,7 +4,7 @@ Cette page décrit les **intégrations prévues** (pas implémentées en V1). L�
 
 ## Principes
 
-- **V1 / V1.5** : saisie manuelle + démo (`lib/mock/daily.ts`, etc.). Après **Profil → Performances**, l’app envoie vers **`/daily`** comme hub quotidien (voir aussi prompts agrégés §13 `athlete_compass_prompts_ordre_complet.md`).
+- **V1 / V1.5** : saisie manuelle des pas du jour + objectif par défaut **10 000** (`lib/daily/daily-activity-storage.ts`, page **`/daily`**), reste démo pour sommeil / récupération (`lib/mock/daily.ts`). Pas d’inférence depuis le profil. Après **Profil → Performances**, l’app envoie vers **`/daily`** comme hub quotidien (voir aussi prompts agrégés §13 `athlete_compass_prompts_ordre_complet.md`).
 - **V6 (voir [`ROADMAP.md`](../ROADMAP.md))** : synchronisation optionnelle pour enrichir readiness, sommeil et charge — jamais obligatoire au diagnostic initial.
 
 ## Périmètre par fournisseur (indicatif)
@@ -36,3 +36,14 @@ Les connecteurs ci-dessus sont visés **V6** dans [`ROADMAP.md`](../ROADMAP.md) 
 3. Relire **RGPD** : finalité, durée de conservation, export/suppression.
 
 Pour l’architecture cible côté cloud, voir aussi [`docs/FUTURE_ARCHITECTURE.md`](FUTURE_ARCHITECTURE.md) et [`ROADMAP.md`](../ROADMAP.md).
+
+## Pas du jour : pourquoi pas d’API dans le navigateur (V1)
+
+- **Apple Health / HealthKit** : pas d’accès depuis une app **web** seule ; il faut en pratique une **app iOS native** (ou pont utilisateur type export / raccourcis) + gestion des consentements App Store.
+- **Android** : **Health Connect** expose les pas côté **app Android** ; une PWA ou site web ne lit pas Health Connect directement sans passer par une **app compagne** ou un **backend** qui centralise les tokens.
+- **Piste réaliste « API »** pour une future version :
+  1. **Backend Next** (route API) + table `wearable_connections` (provider, refresh token chiffré, scopes).
+  2. **OAuth** vers un fournisseur ou un **agrégateur** (ex. *Terra*, *Vital*, *Spike*) qui normalise Garmin / Oura / Google Fit / etc. — réduit le nombre de connecteurs maison au prix d’un abonnement et d’un DPA (RGPD).
+  3. **Webhook ou job quotidien** qui écrit `steps` + date dans la même logique que le stockage local actuel (`stepsByDay`), côté Supabase une fois l’auth utilisateur en place.
+
+Jusqu’à cette couche, la saisie manuelle reste la source de vérité **honnete** pour les pas affichés sur `/daily`.

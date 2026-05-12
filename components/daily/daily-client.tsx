@@ -3,8 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Activity, ArrowRight, BedDouble, Footprints, HeartPulse, Zap } from "lucide-react";
+import {
+  DEFAULT_STEPS_GOAL,
+  loadDailyActivityStore,
+  patchDailyActivityStore,
+  todayLocalDateKey,
+  type DailyActivityStoreV1,
+} from "@/lib/daily/daily-activity-storage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { HybridCoachCard } from "@/components/coach/hybrid-coach-card";
 import { MedicalDisclaimer } from "@/components/disclaimer";
 import { MOCK_DAILY_ACTIVITY, MOCK_DAILY_ATHLETIC_SNAPSHOT, MOCK_DAILY_TODAY, MOCK_DAILY_WELLNESS } from "@/lib/mock/daily";
@@ -35,7 +44,7 @@ function DailyLoopActions() {
   const [fatigueTipOpen, setFatigueTipOpen] = useState(false);
   return (
     <section
-      className="order-10 rounded-2xl border border-border bg-surface/50 p-4 sm:p-5"
+      className="order-11 rounded-2xl border border-border bg-surface/50 p-4 sm:p-5"
       aria-labelledby="daily-loop-actions-heading"
     >
       <h2 id="daily-loop-actions-heading" className="text-display text-sm font-semibold text-foreground">
@@ -82,9 +91,14 @@ function DailyLoopActions() {
 
 export function DailyClient() {
   const [ready, setReady] = useState(false);
+  const [activityRevision, setActivityRevision] = useState(0);
+  const [stepsDraft, setStepsDraft] = useState("");
+  const [goalDraft, setGoalDraft] = useState("");
+  const [activityFormError, setActivityFormError] = useState<string | null>(null);
 
   const bundle = useMemo(() => {
     void ready; // second run after hydration so storage reads match the client
+    void activityRevision;
     const profile = loadProfile() ?? DEMO_PROFILE;
     const savedPerf = loadPerformance();
     const performancesAreDemo = savedPerf == null;
@@ -98,6 +112,13 @@ export function DailyClient() {
       result.reliabilityPct,
       listMissingTestKeys(perf).length,
     );
+    const dailyActivity: DailyActivityStoreV1 = ready
+      ? loadDailyActivityStore(profile)
+      : {
+          v: 1,
+          stepsByDay: {},
+          stepsGoal: DEFAULT_STEPS_GOAL,
+        };
     return {
       profile,
       perf,
@@ -108,8 +129,9 @@ export function DailyClient() {
       userFilledTests,
       reliabilityTier,
       reliabilityExplain,
+      dailyActivity,
     };
-  }, [ready]);
+  }, [ready, activityRevision]);
 
   useEffect(() => {
     queueMicrotask(() => setReady(true));
@@ -125,7 +147,22 @@ export function DailyClient() {
     userFilledTests,
     reliabilityTier,
     reliabilityExplain,
+    dailyActivity,
   } = bundle;
+
+  useEffect(() => {
+    if (!ready) return;
+    const p = loadProfile() ?? DEMO_PROFILE;
+    const da = loadDailyActivityStore(p);
+    const dk = todayLocalDateKey();
+    const ts = da.stepsByDay[dk];
+    setStepsDraft(ts != null ? String(ts) : "");
+    setGoalDraft(String(da.stepsGoal));
+  }, [ready, activityRevision]);
+
+  const dayKey = todayLocalDateKey();
+  const todaySteps = dailyActivity.stepsByDay[dayKey];
+  const stepsGoalDisplay = dailyActivity.stepsGoal;
 
   const showSparseHint =
     !performancesAreDemo && userFilledTests > 0 && userFilledTests < 3;
@@ -136,6 +173,27 @@ export function DailyClient() {
       : readiness.readinessScore >= 48
         ? "Ton readiness est moyen : privilégie qualité d’exécution et volume modéré."
         : "Priorité récupération : court, propre, sans maximal aujourd’hui.";
+
+  function saveDailySteps() {
+    setActivityFormError(null);
+    const goal = Number(goalDraft.replace(",", ".").replace(/\s/g, ""));
+    if (!Number.isFinite(goal) || goal < 2000 || goal > 80_000) {
+      setActivityFormError("Objectif : entre 2 000 et 80 000 pas.");
+      return;
+    }
+    const trim = stepsDraft.trim();
+    const patch: { steps?: number; stepsGoal: number } = { stepsGoal: goal };
+    if (trim !== "") {
+      const s = Number(trim.replace(",", ".").replace(/\s/g, ""));
+      if (!Number.isFinite(s) || s < 0 || s > 200_000) {
+        setActivityFormError("Pas du jour : nombre entre 0 et 200 000.");
+        return;
+      }
+      patch.steps = Math.round(s);
+    }
+    patchDailyActivityStore(profile, patch);
+    setActivityRevision((n) => n + 1);
+  }
 
   return (
     <>
@@ -240,8 +298,16 @@ export function DailyClient() {
         <MiniStat
           icon={Footprints}
           label="Activité"
-          value={`${MOCK_DAILY_ACTIVITY.steps.toLocaleString("fr-FR")} pas`}
-          sub={`Objectif : ${MOCK_DAILY_ACTIVITY.stepsGoal.toLocaleString("fr-FR")}`}
+          value={
+            todaySteps != null
+              ? `${todaySteps.toLocaleString("fr-FR")} pas`
+              : "Non renseigné"
+          }
+          sub={
+            todaySteps != null && stepsGoalDisplay > 0
+              ? `Objectif : ${stepsGoalDisplay.toLocaleString("fr-FR")} · ${Math.min(100, Math.round((todaySteps / stepsGoalDisplay) * 100))} % du jour`
+              : `Objectif : ${stepsGoalDisplay.toLocaleString("fr-FR")} (10 000 par défaut si tu ne l’as pas encore fixé)`
+          }
         />
         <MiniStat
           icon={Activity}
@@ -251,7 +317,65 @@ export function DailyClient() {
         />
       </div>
 
-      <section className="order-6 rounded-2xl border border-border bg-surface/70 p-5 sm:p-6">
+      <section className="order-6 rounded-2xl border border-border bg-surface/50 p-4 sm:p-5">
+        <h2 className="text-display text-sm font-semibold text-foreground">Pas du jour</h2>
+        <p className="mt-1 text-xs leading-relaxed text-muted">
+          En V1, pas d&apos;API santé : saisis les pas affichés par ta montre ou ton téléphone. L&apos;objectif
+          par défaut est <strong className="text-foreground/90">10 000 pas</strong> (modifiable). Une synchro
+          optionnelle (montre, agrégateur santé) est prévue dans la roadmap produit.
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="daily-steps" className="text-xs text-muted">
+              Pas aujourd&apos;hui
+            </Label>
+            <Input
+              id="daily-steps"
+              inputMode="numeric"
+              placeholder="ex. 8 432"
+              value={stepsDraft}
+              onChange={(e) => {
+                setActivityFormError(null);
+                setStepsDraft(e.target.value);
+              }}
+              className="rounded-xl"
+              autoComplete="off"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="daily-steps-goal" className="text-xs text-muted">
+              Objectif / jour
+            </Label>
+            <Input
+              id="daily-steps-goal"
+              inputMode="numeric"
+              placeholder="ex. 10 000"
+              value={goalDraft}
+              onChange={(e) => {
+                setActivityFormError(null);
+                setGoalDraft(e.target.value);
+              }}
+              className="rounded-xl"
+              autoComplete="off"
+            />
+          </div>
+        </div>
+        {activityFormError ? (
+          <p role="alert" className="mt-2 text-xs text-destructive">
+            {activityFormError}
+          </p>
+        ) : null}
+        <Button
+          type="button"
+          variant="secondary"
+          className="mt-4 rounded-xl"
+          onClick={saveDailySteps}
+        >
+          Enregistrer pas & objectif
+        </Button>
+      </section>
+
+      <section className="order-7 rounded-2xl border border-border bg-surface/70 p-5 sm:p-6">
         <div className="flex items-center gap-2">
           <Zap className="h-5 w-5 text-neon" aria-hidden />
           <h2 className="text-display text-lg font-semibold text-foreground">Âge athlétique</h2>
@@ -276,7 +400,7 @@ export function DailyClient() {
         </Button>
       </section>
 
-      <div className="order-7">
+      <div className="order-8">
         <HybridCoachCard
           context={{
             profileId: result.profileId,
@@ -289,7 +413,7 @@ export function DailyClient() {
         />
       </div>
 
-      <section className="order-8 flex flex-col gap-4 lg:order-9 lg:grid lg:grid-cols-2 lg:gap-4">
+      <section className="order-9 flex flex-col gap-4 lg:order-10 lg:grid lg:grid-cols-2 lg:gap-4">
         <div className="rounded-2xl border border-border bg-surface/70 p-5">
           <h2 className="text-display text-sm font-semibold text-foreground">À faire aujourd&apos;hui</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted">
@@ -308,13 +432,13 @@ export function DailyClient() {
         </div>
       </section>
 
-      <div className="order-9 lg:order-8">
+      <div className="order-10 lg:order-9">
         <TrainingDebtCard debt={debt} />
       </div>
 
       <DailyLoopActions />
 
-      <MedicalDisclaimer className="order-11" />
+      <MedicalDisclaimer className="order-12" />
       </div>
 
       <MobileStickyQuickBar>
