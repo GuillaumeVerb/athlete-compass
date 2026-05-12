@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import { Download, Trash2 } from "lucide-react";
 import {
   CartesianGrid,
   Line,
@@ -10,7 +11,12 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { ScoreSnapshotEntry } from "@/lib/scoring/score-snapshots";
+import { Button } from "@/components/ui/button";
+import {
+  buildScoreSnapshotsExport,
+  clearScoreSnapshots,
+  type ScoreSnapshotEntry,
+} from "@/lib/scoring/score-snapshots";
 
 function formatWhen(iso: string): string {
   try {
@@ -34,8 +40,15 @@ function buildChartSeries(entries: ScoreSnapshotEntry[]) {
     }));
 }
 
-/** Liste courte + courbe des derniers scores enregistrés localement (pré-V3 cloud). */
-export function ScoreSnapshotsLocalSection({ entries }: { entries: ScoreSnapshotEntry[] }) {
+/** Liste courte + courbe + export / effacement (pré-V3 cloud). */
+export function ScoreSnapshotsLocalSection({
+  entries,
+  hybridDampeningActive = false,
+}: {
+  entries: ScoreSnapshotEntry[];
+  /** Quand la fiabilité actuelle est sous 55 % : rappel amortissement (en plus de la carte Hybrid). */
+  hybridDampeningActive?: boolean;
+}) {
   const chartData = useMemo(() => buildChartSeries(entries), [entries]);
   if (entries.length === 0) return null;
   const slice = entries.slice(0, 8);
@@ -57,6 +70,27 @@ export function ScoreSnapshotsLocalSection({ entries }: { entries: ScoreSnapshot
       timeStyle: "short",
     });
 
+  const onDownloadJson = useCallback(() => {
+    const payload = buildScoreSnapshotsExport(entries);
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const day = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `athlete-compass-historique-score-${day}.json`;
+    a.rel = "noopener";
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [entries]);
+
+  const onClearHistory = useCallback(() => {
+    const ok = window.confirm(
+      "Supprimer tout l’historique local du score (courbes et liste) ? Cette action est irréversible.",
+    );
+    if (!ok) return;
+    clearScoreSnapshots();
+  }, []);
+
   return (
     <section className="space-y-3" aria-labelledby="results-snapshots-heading">
       <div>
@@ -71,6 +105,32 @@ export function ScoreSnapshotsLocalSection({ entries }: { entries: ScoreSnapshot
           Chaque enregistrement depuis la page Performances ajoute un point (navigateur uniquement).
           Préfiguration de « Mes bilans » (V3, persistance cloud).
         </p>
+        {hybridDampeningActive ? (
+          <p
+            className="mt-3 max-w-2xl rounded-xl border border-amber/30 bg-amber/10 px-3 py-2 text-xs leading-relaxed text-foreground/90"
+            role="note"
+          >
+            Tant que la fiabilité est sous 55 %, le Hybrid (carte ci-dessus) est{" "}
+            <strong className="font-medium text-foreground">légèrement amorti vers le neutre</strong>{" "}
+            — les points de cette courbe suivent le chiffre affiché, pas le brut avant amortissement.
+          </p>
+        ) : null}
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button type="button" variant="outline" size="sm" className="rounded-xl" onClick={onDownloadJson}>
+            <Download aria-hidden />
+            Télécharger JSON
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="rounded-xl border border-destructive/35 text-destructive hover:bg-destructive/10"
+            onClick={onClearHistory}
+          >
+            <Trash2 aria-hidden />
+            Effacer l&apos;historique
+          </Button>
+        </div>
       </div>
 
       {showChart ? (

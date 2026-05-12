@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { mergeScoreSnapshotEntries, type ScoreSnapshotEntry } from "./score-snapshots";
+import {
+  buildScoreSnapshotsExport,
+  mergeScoreSnapshotEntries,
+  type ScoreSnapshotEntry,
+} from "./score-snapshots";
 
 const e = (savedAt: string, hybrid: number, rel: number, athleticAge = 32): ScoreSnapshotEntry => ({
   savedAt,
@@ -8,6 +12,19 @@ const e = (savedAt: string, hybrid: number, rel: number, athleticAge = 32): Scor
   realAge: 30,
   athleticAge,
   goal: "crossfit",
+});
+
+describe("buildScoreSnapshotsExport", () => {
+  it("ordonne les entrées du plus ancien au plus récent et fixe les métadonnées", () => {
+    const entries = [e("2026-01-02T00:00:00Z", 60, 50), e("2026-01-01T00:00:00Z", 55, 48)];
+    const out = buildScoreSnapshotsExport(entries);
+    expect(out.format).toBe("athlete-compass-score-snapshots");
+    expect(out.version).toBe(1);
+    expect(typeof out.exportedAt).toBe("string");
+    expect(out.entries).toHaveLength(2);
+    expect(out.entries[0].savedAt).toBe("2026-01-01T00:00:00Z");
+    expect(out.entries[1].savedAt).toBe("2026-01-02T00:00:00Z");
+  });
 });
 
 describe("mergeScoreSnapshotEntries", () => {

@@ -275,7 +275,10 @@ export function ResultsClient() {
         </div>
       </section>
 
-      <ScoreSnapshotsLocalSection entries={scoreSnapshots} />
+      <ScoreSnapshotsLocalSection
+        entries={scoreSnapshots}
+        hybridDampeningActive={result.reliabilityPct < 55}
+      />
 
       <section className="space-y-5" aria-labelledby="results-radar-heading">
         <div>

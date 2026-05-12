@@ -20,6 +20,34 @@ export type ScoreSnapshotEntry = {
 
 type StoreV1 = { v: 1; entries: ScoreSnapshotEntry[] };
 
+/** Enveloppe d’export JSON (sauvegarde / transfert manuel). */
+export type ScoreSnapshotsExportV1 = {
+  format: "athlete-compass-score-snapshots";
+  version: 1;
+  exportedAt: string;
+  entries: ScoreSnapshotEntry[];
+};
+
+/** Tri chronologique croissant pour un fichier lisible. */
+export function buildScoreSnapshotsExport(entries: ScoreSnapshotEntry[]): ScoreSnapshotsExportV1 {
+  const sorted = [...entries].sort(
+    (a, b) => new Date(a.savedAt).getTime() - new Date(b.savedAt).getTime(),
+  );
+  return {
+    format: "athlete-compass-score-snapshots",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    entries: sorted,
+  };
+}
+
+/** Vide le stockage local et notifie les écrans (ex. Résultats). */
+export function clearScoreSnapshots(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(KEY);
+  window.dispatchEvent(new CustomEvent(SCORE_SNAPSHOTS_CHANGED_EVENT));
+}
+
 /** Fusion pure (tests) : tête + entrée + dédup proche + plafond. */
 export function mergeScoreSnapshotEntries(
   prev: ScoreSnapshotEntry[],
