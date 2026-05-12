@@ -20,11 +20,11 @@ Vision : un **diagnostic de performance hybride** court (âge athlétique, Hybri
 | | |
 | --- | --- |
 | **Objectif produit** | Démontrer la valeur **dès la première lecture des résultats** : compréhension immédiate (âge athlétique, Hybrid Score, profil, limiteur) ; envie d’aller vers **rapport complet** / plan (visée **time-to-value** court : lecture quasi instantanée une fois sur l’écran résultats, hors temps de saisie). |
-| **Features** | Profil utilisateur ; performances manuelles standardisées ; âge athlétique ; **Hybrid Score** (pondération par objectif, puis léger amortissement si fiabilité sous 55 % — `lib/scoring/hybrid-reliability-dampening.ts`) ; profil athlétique ; limiteur principal ; Next Best Move ; **fiabilité du score** ; radar ; **Performance Gap** ; objectifs 4 semaines (aperçu) ; plan minimal 4 semaines (aperçu) ; équivalences ; **Readiness + Training Debt + coach hybride (déterministe)** ; **pas du jour** (local + synchro cloud optionnelle) ; **Body Progress (démo)** ; premium simulé (rapport verrouillé, pricing) ; disclaimers *estimation de performance*. |
+| **Features** | Profil utilisateur ; performances manuelles standardisées ; âge athlétique ; **Hybrid Score** (pondération par objectif, puis léger amortissement si fiabilité sous 55 % — `lib/scoring/hybrid-reliability-dampening.ts`) ; profil athlétique ; limiteur principal ; Next Best Move ; **fiabilité du score** ; radar ; **Performance Gap** ; objectifs 4 semaines (aperçu) ; plan minimal 4 semaines (aperçu) ; équivalences ; **Readiness + Training Debt + coach hybride (déterministe)** ; **pas du jour** (local + synchro cloud optionnelle) ; **Body Progress (démo)** ; **historique local du score** sur `/results` (snapshot au save performances + courbe Hybrid / fiabilité, `localStorage`) ; premium simulé (rapport verrouillé, pricing) ; disclaimers *estimation de performance*. |
 | **Écrans** | Landing ; profil ; performances ; résultats ; **Aujourd’hui** (`/daily`) ; **Body Progress** (`/body-progress`) ; tests ; équivalences ; plan ; rapport (verrouillé) ; pricing ; next-test ; blog (`/blog`). |
 | **Données** | `localStorage` (profil + performances). Optionnel : compte Supabase + table `daily_steps` pour les pas ([`docs/integrations.md`](docs/integrations.md)). |
 | **Complexité technique** | Faible à moyenne — Next.js App Router, scoring déterministe côté client ; routes API ciblées si Supabase + clés service configurées. |
-| **Risques** | Données perdues si cache vidé ; pas d’historique ; pas de revenu réel ; attentes « médical / biologique » si le wording dérive (garder les disclaimers). |
+| **Risques** | Données perdues si cache vidé ; historique score **uniquement dans le navigateur** (pas de sync multi-appareil) ; pas de revenu réel ; attentes « médical / biologique » si le wording dérive (garder les disclaimers). |
 | **Critères de succès** | L’utilisateur comprend son résultat **sans aide** ; CTA vers `/report` / `/pricing` **compris** ; build stable (`typecheck`, `lint`, `test`). |
 | **Métriques** | Taux de complétion profil → performances → résultats (analytics à brancher) ; temps médian sur page résultats ; clics vers `/report` et `/pricing`. |
 
@@ -50,7 +50,7 @@ Vision : un **diagnostic de performance hybride** court (âge athlétique, Hybri
 | | |
 | --- | --- |
 | **Objectif produit** | Créer de la **rétention** : revenir après un mois, retester, voir l’évolution. |
-| **Features** | Compte utilisateur ; liste des bilans datés ; courbes âge athlétique / Hybrid Score ; comparaison avant-après ; protocole de **retest 30 jours** guidé ; rappels optionnels (email). |
+| **Features** | Compte utilisateur ; liste des bilans datés ; courbes âge athlétique / Hybrid Score (**déjà amorcé en local sur `/results`** : série + courbe navigateur) ; comparaison avant-après ; protocole de **retest 30 jours** guidé ; rappels optionnels (email). |
 | **Écrans** | Dashboard “Mes bilans” ; détail d’un bilan ; lancement retest ; synthèse progression. |
 | **Données** | Historique `assessments` + `performance_tests` liés ; éventuellement snapshots de profil. |
 | **Architecture cible** | [`docs/FUTURE_ARCHITECTURE.md`](docs/FUTURE_ARCHITECTURE.md) — section *V3 — Bilans, historique et retest*. |
@@ -115,12 +115,13 @@ Vision : un **diagnostic de performance hybride** court (âge athlétique, Hybri
 - Cinq piliers agrégés puis **Hybrid** = moyenne pondérée par objectif (`goal-weights.ts`, `hybrid-score.ts`).
 - **Fiabilité %** calculée à part (`reliability.ts`) — reste l’indicateur principal du niveau de complétude.
 - **Modulation** : si la fiabilité est strictement inférieure à **55 %**, le Hybrid affiché est légèrement rapproché de **50** (neutre) pour éviter un chiffre trop confiant avec peu de tests (`hybrid-reliability-dampening.ts`).
+- **Historique local** : à chaque sauvegarde performances, snapshot Hybrid + fiabilité + âge réel + objectif (`score-snapshots.ts`, clé `ac_score_snapshots_v1`) ; courbe **Hybrid + fiabilité** sur `/results` (`score-snapshots-local.tsx`).
 
 **Suite prioritaire (score)**
 
 1. **Calibration** — revue des barèmes par épreuve (sexes, poids, cohortes terrain) ; changelog versionné des changements.
 2. **Transparence UX** — sur `/results` et fiche bilan, texte d’aide sous le Hybrid quand fiabilité strictement inférieure à 55 % (amortissement) ; affiner le wording si besoin.
-3. **V3** — historiser Hybrid + piliers à chaque bilan pour courbes et comparatif temporel.
+3. **V3** — porter en cloud ce qui existe déjà en local (Hybrid + fiabilité dans le temps sur `/results`, `lib/scoring/score-snapshots.ts`) ; historiser **aussi** les piliers à chaque bilan pour courbes et comparatif temporel complet.
 4. **A/B ou télémétrie** — mesurer l’effet des ajustements de pondération (quand analytics branché).
 
 **Note de vocabulaire** : dans ce fichier, le palier produit **« V2 »** désigne surtout **Stripe / rapport premium**. La couche **auth + pas cloud** est décrite dans [`docs/integrations.md`](docs/integrations.md) pour éviter la confusion avec le palier paiement.
