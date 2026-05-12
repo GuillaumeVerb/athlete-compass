@@ -166,7 +166,11 @@ export function BilanDetailClient({ id }: { id: string }) {
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <HybridScoreCard score={result.hybridScore} label={result.hybridLabel} />
+        <HybridScoreCard
+          score={result.hybridScore}
+          label={result.hybridLabel}
+          reliabilityPct={result.reliabilityPct}
+        />
         <AthleticAgeCard athleticAge={result.athleticAge} realAge={result.realAge} />
       </div>
 

@@ -255,6 +255,7 @@ export function ResultsClient() {
             <HybridScoreCard
               score={result.hybridScore}
               label={result.hybridLabel}
+              reliabilityPct={result.reliabilityPct}
             />
           </div>
         </div>

@@ -12,6 +12,7 @@ import { coreCarryScore } from "./core-carry";
 import { enduranceScore } from "./endurance";
 import { forceScore } from "./force";
 import { weightedHybridScore } from "./hybrid-score";
+import { dampenHybridTowardNeutralForLowReliability } from "./hybrid-reliability-dampening";
 import { muscularEnduranceScore } from "./muscular-endurance";
 import {
   computeNextBestMovePlan,
@@ -126,8 +127,9 @@ export function computeScoreResult(
     coreCarry: coreCarryScore(perf, profile.sex),
   };
 
-  const hybridScore = weightedHybridScore(breakdown, profile.goal);
+  const hybridRaw = weightedHybridScore(breakdown, profile.goal);
   const reliabilityPct = computeReliabilityPct(perf);
+  const hybridScore = dampenHybridTowardNeutralForLowReliability(hybridRaw, reliabilityPct);
   const athleticAge = estimateAthleticAge(profile.age, hybridScore);
   const profileId = pickProfile(breakdown);
   const { key: limiterKey, v: limiterVal } = pickLimiter(breakdown);
