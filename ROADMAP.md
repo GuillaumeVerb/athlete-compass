@@ -20,9 +20,9 @@ Vision : un **diagnostic de performance hybride** court (âge athlétique, Hybri
 | | |
 | --- | --- |
 | **Objectif produit** | Démontrer la valeur **dès la première lecture des résultats** : compréhension immédiate (âge athlétique, Hybrid Score, profil, limiteur) ; envie d’aller vers **rapport complet** / plan (visée **time-to-value** court : lecture quasi instantanée une fois sur l’écran résultats, hors temps de saisie). |
-| **Features** | Profil utilisateur ; performances manuelles standardisées ; âge athlétique ; **Hybrid Score** (pondération par objectif, puis léger amortissement si fiabilité sous 55 % — `lib/scoring/hybrid-reliability-dampening.ts`) ; profil athlétique ; limiteur principal ; Next Best Move ; **fiabilité du score** ; radar ; **Performance Gap** ; objectifs 4 semaines (aperçu) ; plan minimal 4 semaines (aperçu) ; équivalences ; **Readiness + Training Debt + coach hybride (déterministe)** ; **pas du jour** (local + synchro cloud optionnelle) ; **Body Progress (démo)** ; **historique local du score** sur `/results` (snapshot au save performances + courbes Hybrid / fiabilité / âge athlétique, export JSON, effacement, `localStorage`) ; premium simulé (rapport verrouillé, pricing) ; disclaimers *estimation de performance*. |
+| **Features** | Profil utilisateur ; performances manuelles standardisées ; âge athlétique ; **Hybrid Score** (pondération par objectif, puis léger amortissement si fiabilité sous 55 % — `lib/scoring/hybrid-reliability-dampening.ts`) ; profil athlétique ; limiteur principal ; Next Best Move ; **fiabilité du score** ; radar ; **Performance Gap** ; objectifs 4 semaines (aperçu) ; plan minimal 4 semaines (aperçu) ; équivalences ; **Readiness + Training Debt + coach hybride (déterministe)** ; **pas du jour** (local + synchro cloud optionnelle) ; **Body Progress (démo)** ; **historique local du score** sur `/results` (snapshots au save performances, courbes Hybrid / fiabilité / âge athlétique, export JSON, effacement, rappel amortissement si fiabilité sous 55 %, `localStorage`) ; premium simulé (rapport verrouillé, pricing) ; disclaimers *estimation de performance*. |
 | **Écrans** | Landing ; profil ; performances ; résultats ; **Aujourd’hui** (`/daily`) ; **Body Progress** (`/body-progress`) ; tests ; équivalences ; plan ; rapport (verrouillé) ; pricing ; next-test ; blog (`/blog`). |
-| **Données** | `localStorage` (profil + performances). Optionnel : compte Supabase + table `daily_steps` pour les pas ([`docs/integrations.md`](docs/integrations.md)). |
+| **Données** | `localStorage` (profil, performances, série snapshots score `ac_score_snapshots_v1`). Optionnel : compte Supabase + table `daily_steps` pour les pas ([`docs/integrations.md`](docs/integrations.md)). |
 | **Complexité technique** | Faible à moyenne — Next.js App Router, scoring déterministe côté client ; routes API ciblées si Supabase + clés service configurées. |
 | **Risques** | Données perdues si cache vidé ; historique score **uniquement dans le navigateur** (pas de sync multi-appareil) ; pas de revenu réel ; attentes « médical / biologique » si le wording dérive (garder les disclaimers). |
 | **Critères de succès** | L’utilisateur comprend son résultat **sans aide** ; CTA vers `/report` / `/pricing` **compris** ; build stable (`typecheck`, `lint`, `test`). |
@@ -35,13 +35,15 @@ Vision : un **diagnostic de performance hybride** court (âge athlétique, Hybri
 | | |
 | --- | --- |
 | **Objectif produit** | Valider que des utilisateurs **paient** pour le rapport complet + plan détaillé. |
-| **Features** | Stripe Checkout ; déblocage rapport (page privée et/ou PDF) ; offres alignées 9 / 19 / 29 € ; webhook paiement → statut `purchase` ; email de confirmation ; accès sans mot de passe lourd (magic link ou session signée). |
+| **Features** | Stripe Checkout ; déblocage rapport (cookie signé, `/report`, retour **`/report?unlocked=1`**) ; **PDF** aperçu (`GET /api/report/pdf`) : cookie + achat **`paid`** + **Bearer Supabase** + `?session_id=` (priorité **`purchases.user_id`**, sinon email si `user_id` absent) ; **checkout** : `supabaseAccessToken` optionnel → métadonnées Stripe → **`purchases.user_id`** ; offres 9 / 19 / 29 € ; webhook → `purchases` + `premium_reports` ; **email post-achat (Resend, optionnel)** ; accès rapport sans mot de passe lourd (cookie httpOnly). |
 | **Écrans** | Checkout Stripe (hébergé) ; succès / annulation ; rapport débloqué ; historique minimal “dernier achat”. |
-| **Données** | Compte léger ou identifiant post-achat ; `purchases` + `report_snapshot` ; **`premium_reports`** (JSON, PDF à venir) ; lien `assessment` ↔ `purchase` (voir `docs/FUTURE_ARCHITECTURE.md`). |
+| **Données** | `purchases` (`user_id`, `customer_email`, `report_snapshot`, …) ; **`premium_reports`** (JSON ; PDF produit / `pdf_url` — à venir) ; `checkout_snapshots` ; cookie `ac_report_unlock` ; lien `assessment` ↔ `purchase` ([`docs/FUTURE_ARCHITECTURE.md`](docs/FUTURE_ARCHITECTURE.md)). |
 | **Complexité technique** | Moyenne — webhooks idempotents, secrets, gestion des états d’échec partiel. |
 | **Risques** | Fraude / litiges CB ; RGPD email ; rapport généré différent de l’aperçu gratuit (attentes). |
 | **Critères de succès** | Premier paiement réel ; taux de conversion pricing → checkout > objectif interne. |
 | **Métriques** | CTR page pricing ; conversion checkout ; panier moyen ; abandon checkout ; taux d’ouverture email. |
+
+**Mémo implémentation V2 (code)** : checkout Stripe + snapshot + option `supabaseAccessToken` ; webhook + `purchase/complete` → `purchases` / `premium_reports` ; cookie `ac_report_unlock` ; PDF avec gate `paid` + Bearer (`user_id` ou email) ; `/report?unlocked=1` sans Resend.
 
 ---
 
@@ -130,7 +132,8 @@ Vision : un **diagnostic de performance hybride** court (âge athlétique, Hybri
 
 ## Liens utiles
 
-- **À faire (config)** : [`docs/V2_A_FAIRE.md`](docs/V2_A_FAIRE.md) — Stripe, Resend, déploiement.
+- **À faire (config)** : [`docs/V2_A_FAIRE.md`](docs/V2_A_FAIRE.md) — Stripe, Resend (reportable), déploiement.
+- **Implémentation V2 (détail)** : [`docs/V2_SETUP.md`](docs/V2_SETUP.md), [`docs/V2_CHECKLIST.md`](docs/V2_CHECKLIST.md).
 - Pas cloud & readiness : [`docs/integrations.md`](docs/integrations.md)
 - Amortissement Hybrid / fiabilité : `lib/scoring/hybrid-reliability-dampening.ts`
 - Architecture cible V2+ : [`docs/FUTURE_ARCHITECTURE.md`](docs/FUTURE_ARCHITECTURE.md)
