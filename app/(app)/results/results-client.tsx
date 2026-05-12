@@ -1,9 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import type { PerformanceInput, ScoreResult, UserProfile } from "@/lib/types";
 import { computeScoreResult } from "@/lib/scoring";
+import {
+  loadScoreSnapshots,
+  SCORE_SNAPSHOTS_CHANGED_EVENT,
+} from "@/lib/scoring/score-snapshots";
 import { DEMO_PERFORMANCE, DEMO_PROFILE } from "@/lib/mock-data";
 import { loadPerformance, loadProfile } from "@/lib/storage";
 import { listMissingTestTitles, listMissingTestKeys } from "@/lib/scoring/reliability";
@@ -26,6 +30,7 @@ import { MOCK_DAILY_WELLNESS } from "@/lib/mock/daily";
 import { useDailyStepsCloudPull } from "@/lib/daily/use-daily-steps-cloud-pull";
 import { AthleticAgeCard } from "@/components/results/athletic-age-card";
 import { HybridScoreCard } from "@/components/results/hybrid-score-card";
+import { ScoreSnapshotsLocalSection } from "@/components/results/score-snapshots-local";
 import { ResultsRadarChart } from "@/components/results/radar-chart";
 import { ProfileCard } from "@/components/results/profile-card";
 import { LimiterCard } from "@/components/results/limiter-card";
@@ -81,6 +86,7 @@ function SectionTitle({
 export function ResultsClient() {
   const [payload, setPayload] = useState<Payload | null>(null);
   const [activityTick, setActivityTick] = useState(0);
+  const [snapshotTick, setSnapshotTick] = useState(0);
 
   const bumpActivityTick = useCallback(() => {
     setActivityTick((t) => t + 1);
@@ -95,6 +101,14 @@ export function ResultsClient() {
     window.addEventListener(DAILY_ACTIVITY_STORAGE_CHANGED_EVENT, fn);
     return () => window.removeEventListener(DAILY_ACTIVITY_STORAGE_CHANGED_EVENT, fn);
   }, []);
+
+  useEffect(() => {
+    const fn = () => setSnapshotTick((t) => t + 1);
+    window.addEventListener(SCORE_SNAPSHOTS_CHANGED_EVENT, fn);
+    return () => window.removeEventListener(SCORE_SNAPSHOTS_CHANGED_EVENT, fn);
+  }, []);
+
+  const scoreSnapshots = useMemo(() => loadScoreSnapshots(), [snapshotTick]);
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -260,6 +274,8 @@ export function ResultsClient() {
           </div>
         </div>
       </section>
+
+      <ScoreSnapshotsLocalSection entries={scoreSnapshots} />
 
       <section className="space-y-5" aria-labelledby="results-radar-heading">
         <div>

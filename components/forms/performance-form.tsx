@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { PerformanceInput } from "@/lib/types";
-import { DEMO_PERFORMANCE } from "@/lib/mock-data";
-import { loadPerformance, savePerformance } from "@/lib/storage";
+import { DEMO_PERFORMANCE, DEMO_PROFILE } from "@/lib/mock-data";
+import { loadPerformance, loadProfile, savePerformance } from "@/lib/storage";
+import { recordScoreSnapshot } from "@/lib/scoring/score-snapshots";
 import { buildPerformanceInputFromForm } from "@/lib/performance/build-performance-input-from-form";
 import { perfLoadNoteFormKey } from "@/lib/performance/performance-load-notes";
 import { PERF_FOCUS_QUERY } from "@/lib/performance/performance-focus";
@@ -212,6 +213,7 @@ export function PerformanceForm({
       return;
     }
     savePerformance(built.data);
+    recordScoreSnapshot(loadProfile() ?? DEMO_PROFILE, built.data);
     router.push("/daily");
   }
 
