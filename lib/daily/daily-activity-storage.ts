@@ -4,6 +4,9 @@ import type { UserProfile } from "@/lib/types";
 
 const KEY = "ac_daily_activity_v1";
 
+/** Émis après chaque écriture du store pas (local / import / synchro cloud). */
+export const DAILY_ACTIVITY_STORAGE_CHANGED_EVENT = "ac-daily-activity-changed";
+
 /** Objectif initial si l’utilisateur n’a rien enregistré — neutre, pas lié au profil. */
 export const DEFAULT_STEPS_GOAL = 10_000;
 
@@ -82,6 +85,9 @@ export function saveDailyActivityStore(store: DailyActivityStoreV1): void {
     stepsGoal: Math.min(80_000, Math.max(2000, Math.round(store.stepsGoal))),
   };
   localStorage.setItem(KEY, JSON.stringify(payload));
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(DAILY_ACTIVITY_STORAGE_CHANGED_EVENT));
+  }
 }
 
 /**
@@ -122,6 +128,56 @@ export function importStepsRows(
     stepsByDay[r.day] = s;
   }
   const next: DailyActivityStoreV1 = { v: 1, stepsByDay, stepsGoal: prev.stepsGoal };
+  saveDailyActivityStore(next);
+  return next;
+}
+
+/** Ligne renvoyée par GET /api/daily/steps (synchro descendante). */
+export type CloudDailyStepRow = {
+  day: string;
+  steps: number;
+  stepsGoal: number;
+  updatedAt: string;
+};
+
+/** Fusion pure (tests) : le serveur fait foi pour les jours fournis ; objectif = ligne la plus récente. */
+export function applyCloudStepRowsToStoreState(
+  prev: DailyActivityStoreV1,
+  rows: CloudDailyStepRow[],
+): DailyActivityStoreV1 {
+  if (rows.length === 0) return prev;
+  const stepsByDay = { ...prev.stepsByDay };
+  let bestGoal = prev.stepsGoal;
+  let bestTs = "";
+  for (const r of rows) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(r.day)) continue;
+    if (!Number.isFinite(r.steps) || r.steps < 0 || r.steps > 300_000) continue;
+    const g = normalizeGoal(r.stepsGoal);
+    stepsByDay[r.day] = Math.round(r.steps);
+    const ts = r.updatedAt;
+    if (typeof ts === "string" && ts > bestTs) {
+      bestTs = ts;
+      bestGoal = g;
+    }
+  }
+  return { v: 1, stepsByDay, stepsGoal: bestTs ? bestGoal : prev.stepsGoal };
+}
+
+/**
+ * Applique une réponse cloud au store local (V2 synchro descendante).
+ * Les jours présents dans `rows` remplacent la valeur locale pour ces dates.
+ */
+export function mergeDailyActivityFromCloud(
+  profile: UserProfile,
+  rows: CloudDailyStepRow[],
+): DailyActivityStoreV1 {
+  if (rows.length === 0) return loadDailyActivityStore(profile);
+  const prev = loadDailyActivityStore(profile);
+  const next = applyCloudStepRowsToStoreState(prev, rows);
+  const unchanged =
+    next.stepsGoal === prev.stepsGoal &&
+    JSON.stringify(next.stepsByDay) === JSON.stringify(prev.stepsByDay);
+  if (unchanged) return prev;
   saveDailyActivityStore(next);
   return next;
 }

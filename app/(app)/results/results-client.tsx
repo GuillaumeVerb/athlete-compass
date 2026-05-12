@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import type { PerformanceInput, ScoreResult, UserProfile } from "@/lib/types";
 import { computeScoreResult } from "@/lib/scoring";
@@ -13,12 +13,17 @@ import {
   reliabilityTierFromPct,
 } from "@/lib/scoring/reliability-tier";
 import { computeFutureAthleticAge } from "@/lib/scoring/future-athletic-age";
-import { loadDailyActivityStore, todayLocalDateKey } from "@/lib/daily/daily-activity-storage";
+import {
+  DAILY_ACTIVITY_STORAGE_CHANGED_EVENT,
+  loadDailyActivityStore,
+  todayLocalDateKey,
+} from "@/lib/daily/daily-activity-storage";
 import { enrichReadinessWithDailySteps } from "@/lib/daily/enrich-readiness-with-steps";
 import { activityHintFromStepsStore } from "@/lib/daily/steps-activity-hint";
 import { computeReadiness } from "@/lib/scoring/readiness";
 import { computeTrainingDebt } from "@/lib/scoring/training-debt";
 import { MOCK_DAILY_WELLNESS } from "@/lib/mock/daily";
+import { useDailyStepsCloudPull } from "@/lib/daily/use-daily-steps-cloud-pull";
 import { AthleticAgeCard } from "@/components/results/athletic-age-card";
 import { HybridScoreCard } from "@/components/results/hybrid-score-card";
 import { ResultsRadarChart } from "@/components/results/radar-chart";
@@ -75,6 +80,19 @@ function SectionTitle({
 
 export function ResultsClient() {
   const [payload, setPayload] = useState<Payload | null>(null);
+  const [activityTick, setActivityTick] = useState(0);
+
+  const bumpActivityTick = useCallback(() => {
+    setActivityTick((t) => t + 1);
+  }, []);
+
+  useDailyStepsCloudPull(payload != null, bumpActivityTick);
+
+  useEffect(() => {
+    const fn = () => setActivityTick((t) => t + 1);
+    window.addEventListener(DAILY_ACTIVITY_STORAGE_CHANGED_EVENT, fn);
+    return () => window.removeEventListener(DAILY_ACTIVITY_STORAGE_CHANGED_EVENT, fn);
+  }, []);
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -110,6 +128,7 @@ export function ResultsClient() {
   }
 
   const { result, perf, profile, userFilledTests, performancesAreDemo } = payload;
+  void activityTick;
   const dayKey = todayLocalDateKey();
   const dailyStore = loadDailyActivityStore(profile);
   const readiness = computeReadiness(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback, type ChangeEvent } from "react";
 import Link from "next/link";
 import { Activity, ArrowRight, BedDouble, Footprints, HeartPulse, Zap } from "lucide-react";
 import {
@@ -13,7 +13,8 @@ import {
 } from "@/lib/daily/daily-activity-storage";
 import { enrichReadinessWithDailySteps } from "@/lib/daily/enrich-readiness-with-steps";
 import { parseStepsCsv } from "@/lib/daily/import-steps-csv";
-import { postDailyStepsToCloud } from "@/lib/daily/daily-steps-api-client";
+import { postDailyStepsToCloud, postDailyStepsBatchToCloud } from "@/lib/daily/daily-steps-api-client";
+import { useDailyStepsCloudPull } from "@/lib/daily/use-daily-steps-cloud-pull";
 import { activityHintFromStepsStore } from "@/lib/daily/steps-activity-hint";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -105,6 +106,12 @@ export function DailyClient() {
   const [csvImportError, setCsvImportError] = useState<string | null>(null);
   const [showNewDayTip, setShowNewDayTip] = useState(false);
   const csvInputRef = useRef<HTMLInputElement>(null);
+
+  const bumpActivityRevision = useCallback(() => {
+    setActivityRevision((n) => n + 1);
+  }, []);
+
+  useDailyStepsCloudPull(ready, bumpActivityRevision);
 
   const bundle = useMemo(() => {
     void ready; // second run after hydration so storage reads match the client
@@ -243,8 +250,15 @@ export function DailyClient() {
         setCsvImportError(parsed.error);
         return;
       }
-      importStepsRows(profile, parsed.rows);
+      const store = importStepsRows(profile, parsed.rows);
       setActivityRevision((n) => n + 1);
+      void postDailyStepsBatchToCloud(
+        parsed.rows.map((r) => ({
+          day: r.day,
+          steps: r.steps,
+          stepsGoal: store.stepsGoal,
+        })),
+      );
     };
     reader.onerror = () => setCsvImportError("Lecture du fichier impossible.");
     reader.readAsText(f, "UTF-8");
@@ -416,7 +430,7 @@ export function DailyClient() {
         <p className="mt-1 text-xs leading-relaxed text-muted">
           En V1, pas d&apos;API santé : saisis les pas affichés par ta montre ou ton téléphone. L&apos;objectif
           par défaut est <strong className="text-foreground/90">10 000 pas</strong> (modifiable). Une synchro
-          optionnelle (montre, agrégateur santé) est prévue dans la roadmap produit.
+          optionnelle (montre, agrégateur santé) est prévue dans la roadmap produit. Avec un compte connecté et Supabase configuré, les pas peuvent aussi être <strong className="text-foreground/90">récupérés depuis le cloud</strong> au chargement de la page et après import CSV (synchro ascendante par lots).
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
