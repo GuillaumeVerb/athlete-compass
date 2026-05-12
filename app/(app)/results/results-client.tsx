@@ -13,6 +13,9 @@ import {
   reliabilityTierFromPct,
 } from "@/lib/scoring/reliability-tier";
 import { computeFutureAthleticAge } from "@/lib/scoring/future-athletic-age";
+import { loadDailyActivityStore, todayLocalDateKey } from "@/lib/daily/daily-activity-storage";
+import { enrichReadinessWithDailySteps } from "@/lib/daily/enrich-readiness-with-steps";
+import { activityHintFromStepsStore } from "@/lib/daily/steps-activity-hint";
 import { computeReadiness } from "@/lib/scoring/readiness";
 import { computeTrainingDebt } from "@/lib/scoring/training-debt";
 import { MOCK_DAILY_WELLNESS } from "@/lib/mock/daily";
@@ -107,8 +110,17 @@ export function ResultsClient() {
   }
 
   const { result, perf, profile, userFilledTests, performancesAreDemo } = payload;
-  const readiness = computeReadiness(MOCK_DAILY_WELLNESS);
-  const trainingDebt = computeTrainingDebt(result.breakdown, readiness.readinessScore, profile);
+  const dayKey = todayLocalDateKey();
+  const dailyStore = loadDailyActivityStore(profile);
+  const readiness = computeReadiness(
+    enrichReadinessWithDailySteps(MOCK_DAILY_WELLNESS, profile),
+  );
+  const trainingDebt = computeTrainingDebt(
+    result.breakdown,
+    readiness.readinessScore,
+    profile,
+    activityHintFromStepsStore(dailyStore.stepsByDay, dailyStore.stepsGoal, dayKey),
+  );
   const futureAge = computeFutureAthleticAge(result);
   const missingTitles = listMissingTestTitles(perf);
   const missingKeys = listMissingTestKeys(perf);
@@ -278,7 +290,8 @@ export function ResultsClient() {
           <SectionKicker>Quotidien</SectionKicker>
           <SectionTitle id="results-daily-heading">Dette, coach, projection</SectionTitle>
           <p className="mt-2 max-w-2xl text-sm text-muted">
-            Aperçu basé sur tes scores + déclarations démo (readiness). Va sur{" "}
+            Aperçu basé sur tes scores + déclarations démo (readiness) et, si tu en as saisi, tes
+            pas du jour. Va sur{" "}
             <Link href="/daily" className="text-neon hover:underline">
               Aujourd&apos;hui
             </Link>{" "}

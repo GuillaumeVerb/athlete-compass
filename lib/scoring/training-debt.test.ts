@@ -58,4 +58,10 @@ describe("computeTrainingDebt", () => {
     expect(r.primaryDebt).toBe("force");
     expect(r.recommendedCorrection.toLowerCase()).toContain("force");
   });
+
+  it("activité quotidienne très basse → ligne d’évitement hebdo", () => {
+    const b = fullBreakdown({ force: 35, endurance: 72 });
+    const r = computeTrainingDebt(b, 70, DEMO_PROFILE, { stepsRatio: 0.12 });
+    expect(r.avoidThisWeek.some((x) => x.includes("sédentaire"))).toBe(true);
+  });
 });

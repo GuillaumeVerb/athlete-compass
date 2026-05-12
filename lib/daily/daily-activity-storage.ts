@@ -52,7 +52,7 @@ export function loadDailyActivityStore(_profile: UserProfile): DailyActivityStor
       for (const [k, v] of Object.entries(parsed.stepsByDay)) {
         if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) continue;
         const n = Number(v);
-        if (!Number.isFinite(n) || n < 0 || n > 200_000) continue;
+        if (!Number.isFinite(n) || n < 0 || n > 300_000) continue;
         stepsByDay[k] = Math.round(n);
       }
     }
@@ -73,7 +73,7 @@ export function saveDailyActivityStore(store: DailyActivityStoreV1): void {
   const stepsByDay: Record<string, number> = {};
   for (const [k, v] of Object.entries(store.stepsByDay)) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) continue;
-    if (!Number.isFinite(v) || v < 0 || v > 200_000) continue;
+    if (!Number.isFinite(v) || v < 0 || v > 300_000) continue;
     stepsByDay[k] = Math.round(v);
   }
   const payload: DailyActivityStoreV1 = {
@@ -96,7 +96,7 @@ export function patchDailyActivityStore(
   const day = todayLocalDateKey();
   const stepsByDay = { ...prev.stepsByDay };
   if (typeof patch.steps === "number" && Number.isFinite(patch.steps)) {
-    const s = Math.max(0, Math.round(patch.steps));
+    const s = Math.max(0, Math.min(300_000, Math.round(patch.steps)));
     stepsByDay[day] = s;
   }
   const stepsGoal =
@@ -104,6 +104,24 @@ export function patchDailyActivityStore(
       ? normalizeGoal(patch.stepsGoal)
       : prev.stepsGoal;
   const next: DailyActivityStoreV1 = { v: 1, stepsByDay, stepsGoal };
+  saveDailyActivityStore(next);
+  return next;
+}
+
+/** Fusionne des lignes CSV (jour → pas) dans le store local. */
+export function importStepsRows(
+  profile: UserProfile,
+  rows: { day: string; steps: number }[],
+): DailyActivityStoreV1 {
+  const prev = loadDailyActivityStore(profile);
+  const stepsByDay = { ...prev.stepsByDay };
+  for (const r of rows) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(r.day)) continue;
+    if (!Number.isFinite(r.steps)) continue;
+    const s = Math.max(0, Math.min(300_000, Math.round(r.steps)));
+    stepsByDay[r.day] = s;
+  }
+  const next: DailyActivityStoreV1 = { v: 1, stepsByDay, stepsGoal: prev.stepsGoal };
   saveDailyActivityStore(next);
   return next;
 }

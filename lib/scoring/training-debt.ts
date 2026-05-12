@@ -20,6 +20,11 @@ export type TrainingDebtResult = {
   avoidThisWeek: string[];
 };
 
+/** Ratio pas du jour / objectif (0–1+) — utilisé pour une ligne d’évitement contextuelle. */
+export type TrainingDebtActivityHint = {
+  stepsRatio: number;
+};
+
 function minPillar(b: ScoreBreakdown): { key: keyof ScoreBreakdown; v: number } | null {
   const entries = (Object.keys(b) as (keyof ScoreBreakdown)[])
     .map((k) => ({ key: k, v: b[k] }))
@@ -28,7 +33,19 @@ function minPillar(b: ScoreBreakdown): { key: keyof ScoreBreakdown; v: number } 
   return entries.reduce((a, c) => (c.v < a.v ? c : a));
 }
 
-export function computeTrainingDebt(
+function applyStepsActivityHint(
+  debt: TrainingDebtResult,
+  hint?: TrainingDebtActivityHint,
+): TrainingDebtResult {
+  if (hint == null || !Number.isFinite(hint.stepsRatio)) return debt;
+  if (hint.stepsRatio >= 0.35) return debt;
+  const line =
+    "Journée très sédentaire (peu de pas) : évite d’enchaîner volume jambes lourd et cardio intense sans mobilité ou marche d’abord.";
+  if (debt.avoidThisWeek.some((x) => x.includes("sédentaire"))) return debt;
+  return { ...debt, avoidThisWeek: [...debt.avoidThisWeek, line] };
+}
+
+function computeTrainingDebtBase(
   breakdown: ScoreBreakdown,
   readinessScore: number,
   profile: UserProfile,
@@ -140,4 +157,14 @@ export function computeTrainingDebt(
     recommendedCorrection,
     avoidThisWeek,
   };
+}
+
+export function computeTrainingDebt(
+  breakdown: ScoreBreakdown,
+  readinessScore: number,
+  profile: UserProfile,
+  activityHint?: TrainingDebtActivityHint,
+): TrainingDebtResult {
+  const base = computeTrainingDebtBase(breakdown, readinessScore, profile);
+  return applyStepsActivityHint(base, activityHint);
 }

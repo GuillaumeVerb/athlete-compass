@@ -1,15 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import Link from "next/link";
 import { Activity, ArrowRight, BedDouble, Footprints, HeartPulse, Zap } from "lucide-react";
 import {
   DEFAULT_STEPS_GOAL,
+  importStepsRows,
   loadDailyActivityStore,
   patchDailyActivityStore,
   todayLocalDateKey,
   type DailyActivityStoreV1,
 } from "@/lib/daily/daily-activity-storage";
+import { enrichReadinessWithDailySteps } from "@/lib/daily/enrich-readiness-with-steps";
+import { parseStepsCsv } from "@/lib/daily/import-steps-csv";
+import { postDailyStepsToCloud } from "@/lib/daily/daily-steps-api-client";
+import { activityHintFromStepsStore } from "@/lib/daily/steps-activity-hint";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +37,8 @@ import { TrainingDebtCard } from "@/components/results/training-debt-card";
 import { PerformanceLoadNotesReadout } from "@/components/performance/performance-load-notes-readout";
 import { hasAnyLoadNotes } from "@/lib/performance/load-notes-display";
 import { MobileStickyQuickBar } from "@/components/layout/mobile-sticky-quick-bar";
+
+const NEW_DAY_DISMISS_KEY = "ac_daily_new_day_dismissed";
 
 function formatSleep(h: number): string {
   const hh = Math.floor(h);
@@ -95,23 +102,21 @@ export function DailyClient() {
   const [stepsDraft, setStepsDraft] = useState("");
   const [goalDraft, setGoalDraft] = useState("");
   const [activityFormError, setActivityFormError] = useState<string | null>(null);
+  const [csvImportError, setCsvImportError] = useState<string | null>(null);
+  const [showNewDayTip, setShowNewDayTip] = useState(false);
+  const csvInputRef = useRef<HTMLInputElement>(null);
 
   const bundle = useMemo(() => {
     void ready; // second run after hydration so storage reads match the client
     void activityRevision;
     const profile = loadProfile() ?? DEMO_PROFILE;
+    const dayKey = todayLocalDateKey();
     const savedPerf = loadPerformance();
     const performancesAreDemo = savedPerf == null;
     const perf = savedPerf ?? DEMO_PERFORMANCE;
     const result = computeScoreResult(profile, perf);
-    const readiness = computeReadiness(MOCK_DAILY_WELLNESS);
-    const debt = computeTrainingDebt(result.breakdown, readiness.readinessScore, profile);
-    const userFilledTests = filledCount(savedPerf ?? {});
-    const reliabilityTier = reliabilityTierFromPct(result.reliabilityPct);
-    const reliabilityExplain = reliabilityTierExplanationFr(
-      result.reliabilityPct,
-      listMissingTestKeys(perf).length,
-    );
+    const readinessInput = enrichReadinessWithDailySteps(MOCK_DAILY_WELLNESS, profile);
+    const readiness = computeReadiness(readinessInput);
     const dailyActivity: DailyActivityStoreV1 = ready
       ? loadDailyActivityStore(profile)
       : {
@@ -119,6 +124,23 @@ export function DailyClient() {
           stepsByDay: {},
           stepsGoal: DEFAULT_STEPS_GOAL,
         };
+    const activityHint = activityHintFromStepsStore(
+      dailyActivity.stepsByDay,
+      dailyActivity.stepsGoal,
+      dayKey,
+    );
+    const debt = computeTrainingDebt(
+      result.breakdown,
+      readiness.readinessScore,
+      profile,
+      activityHint,
+    );
+    const userFilledTests = filledCount(savedPerf ?? {});
+    const reliabilityTier = reliabilityTierFromPct(result.reliabilityPct);
+    const reliabilityExplain = reliabilityTierExplanationFr(
+      result.reliabilityPct,
+      listMissingTestKeys(perf).length,
+    );
     return {
       profile,
       perf,
@@ -130,12 +152,19 @@ export function DailyClient() {
       reliabilityTier,
       reliabilityExplain,
       dailyActivity,
+      dayKey,
     };
   }, [ready, activityRevision]);
 
   useEffect(() => {
     queueMicrotask(() => setReady(true));
   }, []);
+
+  useEffect(() => {
+    if (!ready || typeof window === "undefined") return;
+    const k = todayLocalDateKey();
+    setShowNewDayTip(sessionStorage.getItem(NEW_DAY_DISMISS_KEY) !== k);
+  }, [ready]);
 
   const {
     profile,
@@ -148,19 +177,17 @@ export function DailyClient() {
     reliabilityTier,
     reliabilityExplain,
     dailyActivity,
+    dayKey,
   } = bundle;
 
   useEffect(() => {
     if (!ready) return;
     const p = loadProfile() ?? DEMO_PROFILE;
     const da = loadDailyActivityStore(p);
-    const dk = todayLocalDateKey();
-    const ts = da.stepsByDay[dk];
+    const ts = da.stepsByDay[dayKey];
     setStepsDraft(ts != null ? String(ts) : "");
     setGoalDraft(String(da.stepsGoal));
-  }, [ready, activityRevision]);
-
-  const dayKey = todayLocalDateKey();
+  }, [ready, activityRevision, dayKey]);
   const todaySteps = dailyActivity.stepsByDay[dayKey];
   const stepsGoalDisplay = dailyActivity.stepsGoal;
 
@@ -185,14 +212,42 @@ export function DailyClient() {
     const patch: { steps?: number; stepsGoal: number } = { stepsGoal: goal };
     if (trim !== "") {
       const s = Number(trim.replace(",", ".").replace(/\s/g, ""));
-      if (!Number.isFinite(s) || s < 0 || s > 200_000) {
-        setActivityFormError("Pas du jour : nombre entre 0 et 200 000.");
+      if (!Number.isFinite(s) || s < 0 || s > 300_000) {
+        setActivityFormError("Pas du jour : nombre entre 0 et 300 000.");
         return;
       }
       patch.steps = Math.round(s);
     }
-    patchDailyActivityStore(profile, patch);
+    const next = patchDailyActivityStore(profile, patch);
     setActivityRevision((n) => n + 1);
+    const stepsForDay = next.stepsByDay[dayKey];
+    if (typeof stepsForDay === "number") {
+      void postDailyStepsToCloud({
+        day: dayKey,
+        steps: stepsForDay,
+        stepsGoal: next.stepsGoal,
+      });
+    }
+  }
+
+  function onCsvFileChange(ev: ChangeEvent<HTMLInputElement>) {
+    const f = ev.target.files?.[0];
+    ev.target.value = "";
+    if (!f) return;
+    setCsvImportError(null);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = String(reader.result ?? "");
+      const parsed = parseStepsCsv(text);
+      if (!parsed.ok) {
+        setCsvImportError(parsed.error);
+        return;
+      }
+      importStepsRows(profile, parsed.rows);
+      setActivityRevision((n) => n + 1);
+    };
+    reader.onerror = () => setCsvImportError("Lecture du fichier impossible.");
+    reader.readAsText(f, "UTF-8");
   }
 
   return (
@@ -208,6 +263,45 @@ export function DailyClient() {
             Voici ton état du jour. Ta mission : progresser sans accumuler de fatigue inutile.
           </p>
         </header>
+
+      {ready && showNewDayTip ? (
+        <div
+          role="status"
+          className="order-2 flex flex-col gap-2 rounded-2xl border border-neon/30 bg-neon/5 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
+        >
+          <p className="text-sm leading-relaxed text-foreground">
+            <span className="font-medium">Nouveau jour : </span>
+            pense à mettre à jour tes pas si tu veux que le readiness reflète ton activité.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="shrink-0 rounded-xl"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                sessionStorage.setItem(NEW_DAY_DISMISS_KEY, todayLocalDateKey());
+              }
+              setShowNewDayTip(false);
+            }}
+          >
+            OK
+          </Button>
+        </div>
+      ) : null}
+
+      {ready && todaySteps == null ? (
+        <div
+          role="status"
+          className="order-2 rounded-2xl border border-border bg-surface/60 p-4 sm:p-5"
+        >
+          <p className="text-sm leading-relaxed text-muted">
+            <span className="font-medium text-foreground">Rappel : </span>
+            les pas du jour ne sont pas encore renseignés — le readiness et la dette d&apos;entraînement
+            s&apos;enrichissent quand tu enregistres une valeur (saisie ou import CSV).
+          </p>
+        </div>
+      ) : null}
 
       {performancesAreDemo ? (
         <div
@@ -373,6 +467,32 @@ export function DailyClient() {
         >
           Enregistrer pas & objectif
         </Button>
+        <input
+          ref={csvInputRef}
+          type="file"
+          accept=".csv,text/csv"
+          className="sr-only"
+          aria-hidden
+          tabIndex={-1}
+          onChange={onCsvFileChange}
+        />
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="rounded-xl"
+            onClick={() => csvInputRef.current?.click()}
+          >
+            Importer un CSV (date, pas)
+          </Button>
+          <span className="text-[11px] text-muted">Une ligne par jour · YYYY-MM-DD,sép,pas</span>
+        </div>
+        {csvImportError ? (
+          <p role="alert" className="mt-2 text-xs text-destructive">
+            {csvImportError}
+          </p>
+        ) : null}
       </section>
 
       <section className="order-7 rounded-2xl border border-border bg-surface/70 p-5 sm:p-6">

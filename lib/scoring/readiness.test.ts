@@ -73,4 +73,24 @@ describe("computeReadiness", () => {
     expect(["excellent", "good"]).toContain(r.status);
     expect(["push", "train_normal"]).toContain(r.recommendationType);
   });
+
+  it("peu de pas vs objectif → pénalité légère et consigne associée", () => {
+    const base: ReadinessInput = {
+      sleepHours: 7.5,
+      sleepQuality: 4,
+      fatigue: 3,
+      soreness: 2,
+      motivation: 6,
+      previousDayIntensity: "moderate",
+      weeklyTrainingLoad: "normal",
+    };
+    const without = computeReadiness(base);
+    const withLowSteps = computeReadiness({
+      ...base,
+      stepsToday: 1500,
+      stepsGoal: 10_000,
+    });
+    expect(withLowSteps.readinessScore).toBeLessThan(without.readinessScore);
+    expect(withLowSteps.avoidToday.some((x) => x.includes("pas"))).toBe(true);
+  });
 });

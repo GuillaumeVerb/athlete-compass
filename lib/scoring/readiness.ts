@@ -19,6 +19,10 @@ export type ReadinessInput = {
   restingHeartRate?: number;
   previousDayIntensity: PreviousDayIntensity;
   weeklyTrainingLoad: WeeklyTrainingLoad;
+  /** Pas du jour (local) — optionnel, issu du suivi activité. */
+  stepsToday?: number;
+  /** Objectif pas / jour — requis si `stepsToday` est fourni pour interpréter le ratio. */
+  stepsGoal?: number;
 };
 
 export type ReadinessResult = {
@@ -87,6 +91,22 @@ export function computeReadiness(input: ReadinessInput): ReadinessResult {
       break;
   }
 
+  const goal = input.stepsGoal;
+  const steps = input.stepsToday;
+  if (
+    typeof steps === "number" &&
+    Number.isFinite(steps) &&
+    typeof goal === "number" &&
+    Number.isFinite(goal) &&
+    goal > 0
+  ) {
+    const ratio = steps / goal;
+    if (ratio < 0.25) score -= 6;
+    else if (ratio < 0.45) score -= 3;
+    else if (ratio >= 1) score += 2;
+    else if (ratio >= 0.85) score += 1;
+  }
+
   score = Math.round(clamp(score, 0, 100));
 
   let status: ReadinessStatus;
@@ -113,6 +133,17 @@ export function computeReadiness(input: ReadinessInput): ReadinessResult {
   }
   if (input.fatigue >= 8) {
     avoidToday.push("Double séance même jour");
+  }
+
+  if (
+    typeof steps === "number" &&
+    Number.isFinite(steps) &&
+    typeof goal === "number" &&
+    Number.isFinite(goal) &&
+    goal > 0 &&
+    steps / goal < 0.35
+  ) {
+    avoidToday.push("Longue sortie jambes lourdes si journée très peu active (peu de pas)");
   }
 
   let explanation: string;
@@ -155,6 +186,17 @@ export function computeReadiness(input: ReadinessInput): ReadinessResult {
     warningMessage = "Sommeil court : la progression passe d’abord par la récupération.";
   } else if (input.weeklyTrainingLoad === "very_high" && score < 60) {
     warningMessage = "Charge hebdomadaire élevée avec readiness moyenne — redistribue l’intensité.";
+  } else if (
+    typeof steps === "number" &&
+    Number.isFinite(steps) &&
+    typeof goal === "number" &&
+    Number.isFinite(goal) &&
+    goal > 0 &&
+    steps / goal < 0.25 &&
+    input.sleepHours >= 6.5
+  ) {
+    warningMessage =
+      "Activité quotidienne très faible (peu de pas) : complète par marche facile ou mobilité légère.";
   }
 
   return {
