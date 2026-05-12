@@ -7,6 +7,7 @@ import { useCheckoutAvailability } from "@/components/checkout/checkout-context"
 import type { PurchaseProductKey } from "@/lib/future/cloud-types";
 import { DEMO_PERFORMANCE, DEMO_PROFILE } from "@/lib/mock-data";
 import { loadPerformance, loadProfile } from "@/lib/storage";
+import { createBrowserSupabase } from "@/lib/supabase/browser-client";
 import { cn } from "@/lib/utils";
 
 type ButtonProps = React.ComponentProps<typeof Button>;
@@ -67,12 +68,20 @@ export function CheckoutButton({
       const profile = loadProfile() ?? DEMO_PROFILE;
       const performance = loadPerformance() ?? DEMO_PERFORMANCE;
 
+      const sb = createBrowserSupabase();
+      let supabaseAccessToken: string | undefined;
+      if (sb) {
+        const { data } = await sb.auth.getSession();
+        supabaseAccessToken = data.session?.access_token;
+      }
+
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productKey,
           snapshot: { profile, performance },
+          ...(supabaseAccessToken ? { supabaseAccessToken } : {}),
         }),
       });
       const data = (await res.json()) as {

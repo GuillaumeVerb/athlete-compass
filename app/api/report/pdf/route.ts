@@ -19,7 +19,7 @@ export const runtime = "nodejs";
  *
  * Auth :
  * - **Cookie** `ac_report_unlock` (parcours navigateur après paiement) + achat `paid` si ligne présente.
- * - **Bearer** JWT Supabase + query `session_id` = id session Checkout : email JWT = `purchases.customer_email`.
+ * - **Bearer** JWT Supabase + `?session_id=` : `purchases.user_id` = id utilisateur du JWT, sinon même email que `customer_email`.
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -48,13 +48,23 @@ export async function GET(req: Request) {
     productKey = unlock.productKey;
   } else if (bearer && sessionIdParam) {
     const user = await getSupabaseUserFromAccessToken(bearer);
+    if (!user?.id) {
+      return new Response(
+        "Accès refusé — JWT Supabase invalide ou expiré.",
+        {
+          status: 401,
+          headers: { "Content-Type": "text/plain; charset=utf-8" },
+        },
+      );
+    }
     const resolved = await resolvePdfPurchaseForBearer({
       stripeCheckoutSessionId: sessionIdParam,
-      email: user?.email,
+      userId: user.id,
+      email: user.email,
     });
     if (!resolved.ok) {
       return new Response(
-        "Accès refusé — JWT invalide, session inconnue, ou email du compte différent de l’email d’achat Stripe.",
+        "Accès refusé — session inconnue, ou compte non lié à cet achat (user_id / email).",
         {
           status: 403,
           headers: { "Content-Type": "text/plain; charset=utf-8" },
@@ -65,7 +75,7 @@ export async function GET(req: Request) {
     productKey = resolved.productKey;
   } else {
     return new Response(
-      "Accès refusé — cookie de déblocage absent ou expiré. Alternative API : Authorization: Bearer <access_token Supabase> et query ?session_id=<id_session_checkout>.",
+      "Accès refusé — cookie de déblocage absent ou expiré. Alternative API : Authorization: Bearer <access_token Supabase> et ?session_id=<id_session_checkout> (compte lié : user_id en base ou email d’achat).",
       {
         status: 401,
         headers: { "Content-Type": "text/plain; charset=utf-8" },

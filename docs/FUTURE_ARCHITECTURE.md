@@ -128,7 +128,7 @@ Script SQL minimal versionné : **`docs/supabase/migrations/001_purchases.sql`**
 
 ## Flux paiement (Stripe)
 
-1. **POST** `/api/checkout` : body `{ productKey, snapshot?: { profile, performance } }` → session Stripe ; metadata `productKey`, éventuellement `snapshot_id`.
+1. **POST** `/api/checkout` : body `{ productKey, snapshot?, supabaseAccessToken? }` → session Stripe ; metadata `productKey`, éventuellement `snapshot_id`, **`supabase_user_id`** si JWT valide (→ colonne `purchases.user_id`).
 2. Utilisateur paie sur Stripe Hosted Checkout.
 3. **Webhook** `checkout.session.completed` (et `payment_intent.succeeded` si besoin) :
    - Vérifier la signature (`STRIPE_WEBHOOK_SECRET`).

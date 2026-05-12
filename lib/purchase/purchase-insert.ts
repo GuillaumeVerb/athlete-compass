@@ -2,9 +2,19 @@ import type Stripe from "stripe";
 import { z } from "zod";
 import type { PurchaseProductKey } from "@/lib/future/cloud-types";
 
-const metaSchema = z.object({
-  productKey: z.enum(["bilan_9", "plan_19", "pack_29"]),
-});
+const metaSchema = z
+  .object({
+    productKey: z.enum(["bilan_9", "plan_19", "pack_29"]),
+    supabase_user_id: z.string().optional(),
+  })
+  .transform((o) => {
+    const raw = o.supabase_user_id?.trim();
+    const uuidOk = Boolean(raw && z.string().uuid().safeParse(raw).success);
+    return {
+      productKey: o.productKey,
+      supabase_user_id: uuidOk ? raw : undefined,
+    };
+  });
 
 export type PurchaseInsert = {
   stripe_checkout_session_id: string;
@@ -14,6 +24,7 @@ export type PurchaseInsert = {
   currency: string;
   status: "paid";
   customer_email: string | null;
+  user_id: string | null;
 };
 
 export function purchaseInsertFromSession(
@@ -37,5 +48,6 @@ export function purchaseInsertFromSession(
     status: "paid",
     customer_email:
       session.customer_details?.email ?? session.customer_email ?? null,
+    user_id: meta.data.supabase_user_id ?? null,
   };
 }

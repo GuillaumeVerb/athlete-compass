@@ -7,12 +7,15 @@ import type { ReportSnapshotV1 } from "@/lib/purchase/report-snapshot-types";
 import { computeScoreResult } from "@/lib/scoring";
 import { createAdminSupabase } from "@/lib/supabase/admin-client";
 import { getStripe } from "@/lib/stripe/server";
+import { getSupabaseUserFromAccessToken } from "@/lib/supabase/verify-access-token";
 
 export const runtime = "nodejs";
 
 const bodySchema = z.object({
   productKey: z.enum(["bilan_9", "plan_19", "pack_29"]),
   snapshot: checkoutSnapshotBodySchema.optional(),
+  /** Si session Supabase active : relié à l’achat (`metadata` Stripe → `purchases.user_id`). */
+  supabaseAccessToken: z.string().min(1).optional(),
 });
 
 const PRICE_ENV_KEY: Record<PurchaseProductKey, string> = {
@@ -22,7 +25,7 @@ const PRICE_ENV_KEY: Record<PurchaseProductKey, string> = {
 };
 
 /**
- * POST JSON `{ "productKey", "snapshot"?: { profile, performance } }`
+ * POST JSON `{ "productKey", "snapshot"?, "supabaseAccessToken"? }`
  * → session Stripe ; si Supabase + snapshot valides, `snapshot_id` en metadata.
  */
 export async function POST(req: Request) {
@@ -57,7 +60,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { productKey, snapshot: snapshotBody } = parsed.data;
+  const { productKey, snapshot: snapshotBody, supabaseAccessToken } = parsed.data;
   const envKey = PRICE_ENV_KEY[productKey];
   const priceId = process.env[envKey]?.trim();
   if (!priceId) {
@@ -70,6 +73,11 @@ export async function POST(req: Request) {
   const base = appBaseUrl();
 
   const metadata: Record<string, string> = { productKey };
+
+  if (supabaseAccessToken) {
+    const user = await getSupabaseUserFromAccessToken(supabaseAccessToken);
+    if (user?.id) metadata.supabase_user_id = user.id;
+  }
 
   const admin = createAdminSupabase();
   if (snapshotBody && admin) {

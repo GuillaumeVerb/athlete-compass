@@ -84,8 +84,8 @@ Aucun composant V1 ne dépend du client navigateur Supabase pour l’instant.
 | `lib/stripe/server.ts` | Client Stripe lazy |
 | `lib/supabase/*.ts` | Clients Supabase optionnels |
 | `app/api/health/cloud/route.ts` | Santé intégrations (+ Resend optionnel) |
-| `app/api/checkout/route.ts` | Session Checkout |
-| `GET /api/report/pdf` | PDF aperçu : cookie `ac_report_unlock` + ligne `purchases` `paid` si présente ; **ou** `Authorization: Bearer <JWT Supabase>` + `?session_id=<checkout_session_id>` si l’email du JWT = `customer_email` de l’achat |
+| `app/api/checkout/route.ts` | Session Checkout ; option `supabaseAccessToken` → metadata `supabase_user_id` → `purchases.user_id` |
+| `GET /api/report/pdf` | PDF aperçu : cookie `ac_report_unlock` + ligne `purchases` `paid` si présente ; **ou** Bearer + `?session_id=` si `user_id` en base = compte JWT, sinon (sans `user_id`) égalité email avec `customer_email` |
 | `lib/purchase/pdf-access.ts` | Vérification statut achat + correspondance email (Bearer) |
 | `lib/purchase/*` | Ligne d’insert Stripe → SQL, cookie signé |
 | `docs/supabase/migrations/001_purchases.sql` | Table `purchases` minimale (SQL Editor) |
