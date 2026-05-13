@@ -1,6 +1,6 @@
 # Mise en route V2 — Stripe & Supabase (local)
 
-**À faire (Stripe, Resend, déploiement)** : [`docs/V2_A_FAIRE.md`](V2_A_FAIRE.md). **Mémo intégrations** : [`docs/V2_CHECKLIST.md`](V2_CHECKLIST.md).
+**À faire (Stripe, Resend, déploiement)** : [`docs/V2_A_FAIRE.md`](V2_A_FAIRE.md). **Checklist post-merge / prod** : [`docs/A_FAIRE_OPERATEUR.md`](A_FAIRE_OPERATEUR.md). **Mémo intégrations** : [`docs/V2_CHECKLIST.md`](V2_CHECKLIST.md).
 
 La V1 tourne **sans** ces étapes. Utilise ce guide quand tu veux activer les routes API optionnelles.
 

@@ -6,6 +6,8 @@ Tout ce qui demande un **compte externe**, des **clés** ou le **dashboard** Str
 
 Guide technique détaillé (commandes, curl, fichiers) : **[`V2_SETUP.md`](V2_SETUP.md)** — ce fichier est la **liste d’actions** à ne pas oublier.
 
+**Checklist post-merge / prod** (migrations, env, backlog V2–V3) : **[`A_FAIRE_OPERATEUR.md`](A_FAIRE_OPERATEUR.md)**.
+
 ---
 
 ## Supabase — alerte « Table publicly accessible » (RLS)
