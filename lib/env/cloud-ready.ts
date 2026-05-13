@@ -17,6 +17,17 @@ export function isSupabaseAdminConfigured(): boolean {
   );
 }
 
+/** Bucket Supabase (privé) pour persister les PDF rapport — optionnel. */
+export function reportPdfStorageBucketName(): string | null {
+  const b = process.env.SUPABASE_REPORT_PDF_BUCKET?.trim();
+  return b || null;
+}
+
+/** Admin Supabase + nom de bucket → persistance PDF après génération. */
+export function isSupabaseReportPdfPersistenceConfigured(): boolean {
+  return isSupabaseAdminConfigured() && !!reportPdfStorageBucketName();
+}
+
 export function isStripeSecretConfigured(): boolean {
   return !!process.env.STRIPE_SECRET_KEY?.trim();
 }

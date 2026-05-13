@@ -19,6 +19,7 @@ const metaSchema = z
 export type PurchaseInsert = {
   stripe_checkout_session_id: string;
   stripe_payment_intent_id: string | null;
+  stripe_customer_id: string | null;
   product_key: PurchaseProductKey;
   amount_cents: number;
   currency: string;
@@ -26,6 +27,19 @@ export type PurchaseInsert = {
   customer_email: string | null;
   user_id: string | null;
 };
+
+/** Extrait `cus_…` depuis une session Checkout Stripe (string ou objet développé). */
+export function stripeCustomerIdFromCheckoutSession(
+  session: Stripe.Checkout.Session,
+): string | null {
+  const c = session.customer;
+  if (typeof c === "string" && c.startsWith("cus_")) return c;
+  if (c && typeof c === "object" && "id" in c) {
+    const id = String((c as { id: unknown }).id);
+    return id.startsWith("cus_") ? id : null;
+  }
+  return null;
+}
 
 export function purchaseInsertFromSession(
   session: Stripe.Checkout.Session,
@@ -42,6 +56,7 @@ export function purchaseInsertFromSession(
   return {
     stripe_checkout_session_id: session.id,
     stripe_payment_intent_id: paymentIntentId,
+    stripe_customer_id: stripeCustomerIdFromCheckoutSession(session),
     product_key: meta.data.productKey,
     amount_cents: session.amount_total ?? 0,
     currency: (session.currency ?? "eur").toLowerCase(),

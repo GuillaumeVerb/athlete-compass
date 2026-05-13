@@ -8,6 +8,30 @@ Guide technique détaillé (commandes, curl, fichiers) : **[`V2_SETUP.md`](V2_SE
 
 ---
 
+## Supabase — alerte « Table publicly accessible » (RLS)
+
+Si le **Security Advisor** signale **`rls_disabled_in_public`** sur le projet `athlete_compass` : en général il s’agit de **`public.purchases`** et/ou **`public.checkout_snapshots`**, créées sans RLS dans les migrations `001` / `002`, tant que la migration **`011`** n’a pas été appliquée.
+
+1. **Minimum (couper l’accès public anon)** : exécuter dans le SQL Editor Supabase le fichier  
+   **`docs/supabase/migrations/012_hotfix_rls_purchases_checkout_snapshots.sql`**  
+   (ou `supabase db push` / migration `20260513170000_…` si tu utilises la CLI).
+2. **Complet (recommandé)** : appliquer aussi **`011_purchases_rls_stripe_customer_plan_policies.sql`** — policies `SELECT` pour les JWT, `plan_instances`, `premium_reports`, colonne `stripe_customer_id`, etc.
+
+**Vérification** (SQL Editor) :
+
+```sql
+select relname, relrowsecurity
+from pg_class c
+join pg_namespace n on n.oid = c.relnamespace
+where n.nspname = 'public' and c.relkind = 'r'
+  and relname in ('purchases', 'checkout_snapshots', 'premium_reports', 'plan_instances')
+order by 1;
+```
+
+`relrowsecurity` = **true** pour chaque table exposée à l’API anon.
+
+---
+
 ## Stripe (paiement test puis prod)
 
 - [ ] [Dashboard Stripe](https://dashboard.stripe.com/) — mode **test** pour le dev.
@@ -19,6 +43,7 @@ Guide technique détaillé (commandes, curl, fichiers) : **[`V2_SETUP.md`](V2_SE
   - [ ] `NEXT_PUBLIC_APP_URL` = URL réelle de l’app (port inclus en local, `https` en prod).
 - [ ] **Webhook local** : `stripe listen --forward-to localhost:PORT/api/webhooks/stripe` → copier le signing secret → redémarrer Next.
 - [ ] **Webhook prod** : dans Stripe, endpoint `https://TON_DOMAINE/api/webhooks/stripe` + secret **dédié** (pas celui de `stripe listen`).
+- [ ] **Stripe Customer Portal** : Dashboard → *Settings* → *Billing* → *Customer portal* — activer au minimum l’historique / factures ; sinon `POST /api/stripe/customer-portal` peut échouer (502, message dans la réponse).
 - [ ] Vérifier : `curl -s "http://localhost:PORT/api/health/cloud" | jq` → `stripeSecret: true`, `stripeCheckout: true`.
 - [ ] **Paiement test** (carte `4242…`) : Checkout → `/report` → ligne **`purchases`** (et **`premium_reports`** si snapshot au checkout).
 
@@ -49,6 +74,19 @@ Peut être **reporté** : le flux paiement → cookie → `/report` fonctionne s
 
 ---
 
+## Supabase Auth — magic link « Compte Supabase » sur `/report` (**plus tard**)
+
+Quand tu voudras que les utilisateurs utilisent le **lien magique** (email) depuis la section *Compte Supabase* du rapport débloqué :
+
+- [ ] Dashboard Supabase → **Authentication** → **URL Configuration** : ajouter en **Redirect URLs** (ou *Site URL* selon version) au minimum :
+  - [ ] `http://localhost:3000/report` (dev)
+  - [ ] `https://TON_DOMAINE/report` (prod)
+- [ ] Vérifier que l’**email** autorisé côté Auth correspond bien à celui saisi au Checkout Stripe (sinon la liaison `user_id` refusera par design).
+
+Sans cette config, le bouton **Recevoir le lien** peut échouer silencieusement ou renvoyer une erreur Supabase côté client.
+
+---
+
 ## Suite produit / code (hors ce fichier)
 
-Priorités typiques après la config ci-dessus : **PDF** (`pdf_url`), **auth** + `user_id`, **RLS** côté client. Voir **[`V2_CHECKLIST.md`](V2_CHECKLIST.md)** et **[`FUTURE_ARCHITECTURE.md`](FUTURE_ARCHITECTURE.md)**.
+Priorités typiques après la config ci-dessus : **RLS** côté client, **portail client Stripe**, **auth** (magic link produit global). Voir **[`V2_CHECKLIST.md`](V2_CHECKLIST.md)** et **[`FUTURE_ARCHITECTURE.md`](FUTURE_ARCHITECTURE.md)**.

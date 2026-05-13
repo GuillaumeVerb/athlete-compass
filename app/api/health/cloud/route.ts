@@ -6,6 +6,7 @@ import {
   isStripeWebhookConfigured,
   isSupabaseAdminConfigured,
   isSupabaseBrowserConfigured,
+  isSupabaseReportPdfPersistenceConfigured,
 } from "@/lib/env/cloud-ready";
 
 /** GET — état des intégrations (aucun secret exposé). */
@@ -18,5 +19,6 @@ export async function GET() {
     stripeCheckout: isStripeCheckoutConfigured(),
     resendEmail: isResendEmailConfigured(),
     cronRetestReminders: isCronSecretConfigured(),
+    reportPdfStorage: isSupabaseReportPdfPersistenceConfigured(),
   });
 }

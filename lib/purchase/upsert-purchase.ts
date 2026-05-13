@@ -31,14 +31,24 @@ export async function upsertPurchaseRow(
 
   const { data: existing } = await supabase
     .from("purchases")
-    .select("report_snapshot")
+    .select("report_snapshot, stripe_customer_id")
     .eq("stripe_checkout_session_id", base.stripe_checkout_session_id)
     .maybeSingle();
 
   const existingSnap = existing?.report_snapshot as ReportSnapshotV1 | null | undefined;
   const reportSnapshot = incoming ?? existingSnap ?? undefined;
 
-  const row: PurchaseRow = { ...base };
+  const existingCustomer =
+    typeof existing?.stripe_customer_id === "string" && existing.stripe_customer_id.trim().length > 0
+      ? existing.stripe_customer_id.trim()
+      : null;
+  const incomingCustomer =
+    typeof base.stripe_customer_id === "string" && base.stripe_customer_id.trim().length > 0
+      ? base.stripe_customer_id.trim()
+      : null;
+  const stripe_customer_id = incomingCustomer ?? existingCustomer ?? null;
+
+  const row: PurchaseRow = { ...base, stripe_customer_id };
   if (reportSnapshot) row.report_snapshot = reportSnapshot;
 
   const { error } = await supabase.from("purchases").upsert(row, {

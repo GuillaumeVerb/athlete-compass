@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
-import { Download, Trash2 } from "lucide-react";
+import { useCallback, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { Download, Trash2, Upload } from "lucide-react";
 import {
   CartesianGrid,
   Line,
@@ -13,8 +13,10 @@ import {
 } from "recharts";
 import { Button } from "@/components/ui/button";
 import {
+  applyScoreSnapshotsImport,
   buildScoreSnapshotsExport,
   clearScoreSnapshots,
+  parseScoreSnapshotsImportPayload,
   type ScoreSnapshotEntry,
 } from "@/lib/scoring/score-snapshots";
 
@@ -49,8 +51,13 @@ export function ScoreSnapshotsLocalSection({
   /** Quand la fiabilité actuelle est sous 55 % : rappel amortissement (en plus de la carte Hybrid). */
   hybridDampeningActive?: boolean;
 }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [importNotice, setImportNotice] = useState<{
+    kind: "ok" | "err";
+    text: string;
+  } | null>(null);
+
   const chartData = useMemo(() => buildChartSeries(entries), [entries]);
-  if (entries.length === 0) return null;
   const slice = entries.slice(0, 8);
   const showChart = chartData.length >= 2;
   const athleticVals = useMemo(
@@ -91,6 +98,42 @@ export function ScoreSnapshotsLocalSection({
     clearScoreSnapshots();
   }, []);
 
+  const onPickImportFile = useCallback(() => {
+    setImportNotice(null);
+    fileRef.current?.click();
+  }, []);
+
+  const onImportFile = useCallback(async (ev: ChangeEvent<HTMLInputElement>) => {
+    const file = ev.target.files?.[0];
+    ev.target.value = "";
+    if (!file) return;
+    setImportNotice(null);
+    try {
+      const text = await file.text();
+      let data: unknown;
+      try {
+        data = JSON.parse(text) as unknown;
+      } catch {
+        setImportNotice({ kind: "err", text: "JSON illisible — vérifie le fichier exporté." });
+        return;
+      }
+      const parsed = parseScoreSnapshotsImportPayload(data);
+      if (!parsed.ok) {
+        setImportNotice({ kind: "err", text: parsed.error });
+        return;
+      }
+      const changed = applyScoreSnapshotsImport(parsed.entries);
+      setImportNotice({
+        kind: "ok",
+        text: changed
+          ? "Historique fusionné avec le fichier (doublons proches ignorés, plafond respecté)."
+          : "Aucun changement : tout était déjà présent ou équivalent.",
+      });
+    } catch {
+      setImportNotice({ kind: "err", text: "Lecture du fichier impossible." });
+    }
+  }, []);
+
   return (
     <section className="space-y-3" aria-labelledby="results-snapshots-heading">
       <div>
@@ -116,6 +159,26 @@ export function ScoreSnapshotsLocalSection({
           </p>
         ) : null}
         <div className="mt-3 flex flex-wrap gap-2">
+          <input
+            id="score-snapshots-json-import"
+            ref={fileRef}
+            type="file"
+            accept="application/json,.json"
+            className="sr-only"
+            tabIndex={-1}
+            aria-label="Importer un fichier JSON d’historique de score"
+            onChange={onImportFile}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="rounded-xl"
+            onClick={onPickImportFile}
+          >
+            <Upload aria-hidden />
+            Importer JSON
+          </Button>
           <Button type="button" variant="outline" size="sm" className="rounded-xl" onClick={onDownloadJson}>
             <Download aria-hidden />
             Télécharger JSON
@@ -131,9 +194,29 @@ export function ScoreSnapshotsLocalSection({
             Effacer l&apos;historique
           </Button>
         </div>
+        {importNotice ? (
+          <p
+            className={
+              importNotice.kind === "ok"
+                ? "mt-2 max-w-2xl rounded-xl border border-neon/35 bg-neon/10 px-3 py-2 text-xs text-foreground/95"
+                : "mt-2 max-w-2xl rounded-xl border border-destructive/35 bg-destructive/10 px-3 py-2 text-xs text-foreground/95"
+            }
+            role="status"
+          >
+            {importNotice.text}
+          </p>
+        ) : null}
       </div>
 
-      {showChart ? (
+      {entries.length === 0 ? (
+        <p className="rounded-2xl border border-border bg-surface/40 px-4 py-3 text-sm text-muted">
+          Aucun point enregistré pour l’instant. Enregistre tes performances depuis la page{" "}
+          <span className="font-medium text-foreground/90">Performances</span>, ou importe un export JSON
+          depuis un autre navigateur.
+        </p>
+      ) : null}
+
+      {entries.length > 0 && showChart ? (
         <div
           className="space-y-6 rounded-2xl border border-border bg-surface/50 p-4 sm:p-5"
           role="group"
@@ -254,13 +337,14 @@ export function ScoreSnapshotsLocalSection({
             Axe temps : du plus ancien au plus récent parmi les points enregistrés.
           </p>
         </div>
-      ) : (
+      ) : entries.length > 0 ? (
         <p className="rounded-2xl border border-border bg-surface/40 px-4 py-3 text-sm text-muted">
           Enregistre au moins <span className="font-medium text-foreground">deux fois</span> tes
           performances pour afficher la courbe (un seul point pour l’instant).
         </p>
-      )}
+      ) : null}
 
+      {entries.length > 0 ? (
       <ul className="divide-y divide-border rounded-2xl border border-border bg-surface/50">
         {slice.map((row, i) => (
           <li key={`${row.savedAt}-${i}`} className="flex flex-wrap items-baseline justify-between gap-3 px-4 py-3 text-sm">
@@ -278,6 +362,7 @@ export function ScoreSnapshotsLocalSection({
           </li>
         ))}
       </ul>
+      ) : null}
     </section>
   );
 }

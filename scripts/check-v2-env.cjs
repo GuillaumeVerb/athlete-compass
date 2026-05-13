@@ -53,6 +53,8 @@ const resendEmail = t(process.env.RESEND_API_KEY) && t(process.env.RESEND_FROM_E
 const cronRetest = t(process.env.CRON_SECRET);
 const appUrl = t(process.env.NEXT_PUBLIC_APP_URL);
 const purchaseSigning = t(process.env.PURCHASE_SIGNING_SECRET);
+const reportPdfBucket =
+  supabaseAdmin && t(process.env.SUPABASE_REPORT_PDF_BUCKET);
 
 function explicitBaseUrl() {
   const u = process.env.NEXT_PUBLIC_APP_URL?.trim();
@@ -66,6 +68,11 @@ const rows = [
   ["NEXT_PUBLIC_APP_URL (recommandé succès Stripe / canonical)", appUrl, "Défini par défaut en local → http://localhost:3000 si absent"],
   ["Supabase navigateur (NEXT_PUBLIC_SUPABASE_* )", supabaseBrowser, "Optionnel V1 ; utile client + auth future"],
   ["Supabase service role (admin)", supabaseAdmin, "Requis pour persister purchases / snapshots côté serveur"],
+  [
+    "SUPABASE_REPORT_PDF_BUCKET (optionnel)",
+    reportPdfBucket,
+    "Persistance PDF dans Storage — migration 009_report_pdf_storage_bucket.sql",
+  ],
   ["STRIPE_SECRET_KEY", stripeSecret, "Mode test sk_test_… puis prod"],
   ["STRIPE_PRICE_BILAN_9 / PLAN_19 / PACK_29", stripePrices, "pnpm stripe:seed-catalog pour créer les prix"],
   ["Checkout utilisable (clé + 3 prix)", stripeCheckout, "Aligné sur isStripeCheckoutConfigured()"],

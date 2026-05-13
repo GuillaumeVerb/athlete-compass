@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
@@ -28,6 +29,13 @@ function ReportPostPurchaseBannerInner() {
         <strong className="text-foreground">l’email de confirmation n’est pas activé</strong> (Resend
         optionnel), garde cet onglet ou enregistre <span className="whitespace-nowrap">/report</span> en
         favori.
+      </p>
+      <p className="mt-2 text-xs leading-relaxed text-foreground/85">
+        Compte Supabase ?{" "}
+        <Link href="#report-supabase-account" className="font-medium text-neon underline">
+          Rattacher l’achat
+        </Link>{" "}
+        (même email que la facture) — section plus bas sur cette page.
       </p>
       <Button type="button" variant="outline" size="sm" className="mt-3 rounded-xl" onClick={onDismiss}>
         Compris

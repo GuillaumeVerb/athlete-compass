@@ -1,6 +1,18 @@
 import type { PrimaryGoal, PerformanceInput, UserProfile } from "@/lib/types";
 import { computeScoreResult } from "./index";
 
+const PRIMARY_GOAL_SET = new Set<string>([
+  "crossfit",
+  "hyrox",
+  "recomp",
+  "endurance",
+  "strength_aesthetics",
+]);
+
+function isPrimaryGoalString(s: string): s is PrimaryGoal {
+  return PRIMARY_GOAL_SET.has(s);
+}
+
 export const SCORE_SNAPSHOTS_CHANGED_EVENT = "ac-score-snapshots-changed";
 
 const KEY = "ac_score_snapshots_v1";
@@ -67,6 +79,69 @@ export function mergeScoreSnapshotEntries(
   return [entry, ...prev].slice(0, max);
 }
 
+/** Valide une entrée JSON (export ou stockage interne). */
+export function parseScoreSnapshotEntry(e: unknown): ScoreSnapshotEntry | null {
+  if (!e || typeof e !== "object") return null;
+  const o = e as Record<string, unknown>;
+  if (typeof o.savedAt !== "string") return null;
+  if (typeof o.hybridScore !== "number" || !Number.isFinite(o.hybridScore)) return null;
+  if (typeof o.reliabilityPct !== "number" || !Number.isFinite(o.reliabilityPct)) return null;
+  if (typeof o.realAge !== "number" || !Number.isFinite(o.realAge)) return null;
+  if (typeof o.goal !== "string" || !isPrimaryGoalString(o.goal)) return null;
+  const athleticAge =
+    typeof o.athleticAge === "number" && Number.isFinite(o.athleticAge) ? o.athleticAge : undefined;
+  const entry: ScoreSnapshotEntry = {
+    savedAt: o.savedAt,
+    hybridScore: o.hybridScore,
+    reliabilityPct: o.reliabilityPct,
+    realAge: o.realAge,
+    goal: o.goal,
+  };
+  if (athleticAge !== undefined) entry.athleticAge = athleticAge;
+  return entry;
+}
+
+/** Parse un fichier exporté (`buildScoreSnapshotsExport`). */
+export function parseScoreSnapshotsImportPayload(
+  data: unknown,
+): { ok: true; entries: ScoreSnapshotEntry[] } | { ok: false; error: string } {
+  if (!data || typeof data !== "object") {
+    return { ok: false, error: "Fichier invalide ou vide." };
+  }
+  const o = data as Record<string, unknown>;
+  if (o.format !== "athlete-compass-score-snapshots") {
+    return { ok: false, error: "Format non reconnu (export Athlete Compass attendu)." };
+  }
+  if (o.version !== 1) {
+    return { ok: false, error: "Version d’export non prise en charge." };
+  }
+  if (!Array.isArray(o.entries)) {
+    return { ok: false, error: "Champ « entries » manquant ou invalide." };
+  }
+  const entries = o.entries
+    .map((row) => parseScoreSnapshotEntry(row))
+    .filter((row): row is ScoreSnapshotEntry => row != null);
+  if (entries.length === 0) {
+    return { ok: false, error: "Aucune entrée valide dans le fichier." };
+  }
+  return { ok: true, entries };
+}
+
+/** Fusion import + série existante (pur, testable sans `localStorage`). */
+export function mergeScoreSnapshotsImportPure(
+  current: ScoreSnapshotEntry[],
+  incoming: ScoreSnapshotEntry[],
+): ScoreSnapshotEntry[] {
+  let acc = [...current];
+  const sorted = [...incoming].sort(
+    (a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime(),
+  );
+  for (const e of sorted) {
+    acc = mergeScoreSnapshotEntries(acc, e, MAX_ENTRIES, DEDUPE_WINDOW_MS);
+  }
+  return acc;
+}
+
 export function loadScoreSnapshots(): ScoreSnapshotEntry[] {
   if (typeof window === "undefined") return [];
   try {
@@ -74,14 +149,9 @@ export function loadScoreSnapshots(): ScoreSnapshotEntry[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw) as Partial<StoreV1>;
     if (parsed.v !== 1 || !Array.isArray(parsed.entries)) return [];
-    return parsed.entries.filter(
-      (e): e is ScoreSnapshotEntry =>
-        typeof e?.savedAt === "string" &&
-        typeof e?.hybridScore === "number" &&
-        typeof e?.reliabilityPct === "number" &&
-        typeof e?.realAge === "number" &&
-        typeof e?.goal === "string",
-    );
+    return parsed.entries
+      .map((row) => parseScoreSnapshotEntry(row))
+      .filter((row): row is ScoreSnapshotEntry => row != null);
   } catch {
     return [];
   }
@@ -92,6 +162,16 @@ function saveSnapshots(entries: ScoreSnapshotEntry[]): void {
   const payload: StoreV1 = { v: 1, entries };
   localStorage.setItem(KEY, JSON.stringify(payload));
   window.dispatchEvent(new CustomEvent(SCORE_SNAPSHOTS_CHANGED_EVENT));
+}
+
+/** Fusionne dans le stockage navigateur. Retourne `true` si le stockage a changé. */
+export function applyScoreSnapshotsImport(incoming: ScoreSnapshotEntry[]): boolean {
+  if (typeof window === "undefined") return false;
+  const prev = loadScoreSnapshots();
+  const next = mergeScoreSnapshotsImportPure(prev, incoming);
+  if (JSON.stringify(prev) === JSON.stringify(next)) return false;
+  saveSnapshots(next);
+  return true;
 }
 
 /** À appeler après une sauvegarde performances réussie (navigateur). */

@@ -10,6 +10,10 @@ import {
   verifyReportUnlock,
 } from "@/lib/purchase/report-unlock-cookie";
 import type { PurchaseProductKey } from "@/lib/future/cloud-types";
+import {
+  loadPersistedReportPdfIfAny,
+  persistGeneratedReportPdf,
+} from "@/lib/purchase/report-pdf-persistence";
 import { getSupabaseUserFromAccessToken } from "@/lib/supabase/verify-access-token";
 
 export const runtime = "nodejs";
@@ -91,10 +95,27 @@ export async function GET(req: Request) {
     );
   }
 
+  const cached = await loadPersistedReportPdfIfAny(sessionId);
+  if (cached) {
+    const body = new Uint8Array(cached.byteLength);
+    body.set(cached);
+    return new Response(body, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition":
+          'attachment; filename="rapport-athlete-compass-aperçu.pdf"',
+        "Cache-Control": "private, no-store",
+      },
+    });
+  }
+
   const bytes = await buildReportPdf({
     productKey,
     snapshot,
   });
+
+  await persistGeneratedReportPdf(sessionId, bytes);
 
   const body = new Uint8Array(bytes.byteLength);
   body.set(bytes);
