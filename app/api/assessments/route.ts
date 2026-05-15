@@ -1,17 +1,22 @@
 import { NextResponse } from "next/server";
+import { findRecentAssessmentDuplicate } from "@/lib/assessments/recent-assessment-dedupe";
 import { createAssessmentBodySchema } from "@/lib/assessments/create-assessment-schema";
+import { purchaseProductKeyFromEmbed } from "@/lib/purchase/purchase-product-key-from-embed";
+import { resolvePurchaseIdForCloudAssessment } from "@/lib/purchase/resolve-purchase-id-for-cloud-assessment";
 import { computeScoreResult } from "@/lib/scoring";
 import { createAdminSupabase } from "@/lib/supabase/admin-client";
-import { getUserIdFromSupabaseAccessToken } from "@/lib/supabase/verify-access-token";
+import { getSupabaseUserFromAccessToken } from "@/lib/supabase/verify-access-token";
 
 export const runtime = "nodejs";
 
-async function userIdFromBearer(req: Request): Promise<string | null> {
+async function authUserFromBearer(
+  req: Request,
+): Promise<{ id: string; email: string | null } | null> {
   const h = req.headers.get("authorization");
   if (!h?.toLowerCase().startsWith("bearer ")) return null;
   const jwt = h.slice(7).trim();
   if (!jwt) return null;
-  return getUserIdFromSupabaseAccessToken(jwt);
+  return getSupabaseUserFromAccessToken(jwt);
 }
 
 export async function GET(req: Request) {
@@ -23,8 +28,8 @@ export async function GET(req: Request) {
     );
   }
 
-  const userId = await userIdFromBearer(req);
-  if (!userId) {
+  const auth = await authUserFromBearer(req);
+  if (!auth) {
     return NextResponse.json(
       { ok: false, error: "auth_required" },
       { status: 401 },
@@ -38,9 +43,9 @@ export async function GET(req: Request) {
   const { data, error } = await supabase
     .from("assessments")
     .select(
-      "id, created_at, hybrid_score, athletic_age, reliability_pct, profile_label, limiter, source, previous_assessment_id",
+      "id, created_at, hybrid_score, athletic_age, reliability_pct, profile_label, limiter, source, previous_assessment_id, purchase_id, purchases(product_key)",
     )
-    .eq("user_id", userId)
+    .eq("user_id", auth.id)
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -65,6 +70,9 @@ export async function GET(req: Request) {
       source: (row.source as string) ?? "manual",
       previousAssessmentId:
         (row.previous_assessment_id as string | null) ?? null,
+      purchaseProductKey: purchaseProductKeyFromEmbed(
+        (row as { purchases?: unknown }).purchases,
+      ),
     })),
   });
 }
@@ -78,8 +86,8 @@ export async function POST(req: Request) {
     );
   }
 
-  const userId = await userIdFromBearer(req);
-  if (!userId) {
+  const auth = await authUserFromBearer(req);
+  if (!auth) {
     return NextResponse.json(
       { ok: false, error: "auth_required" },
       { status: 401 },
@@ -112,7 +120,7 @@ export async function POST(req: Request) {
       .from("assessments")
       .select("id")
       .eq("id", previousAssessmentId)
-      .eq("user_id", userId)
+      .eq("user_id", auth.id)
       .maybeSingle();
 
     if (prevErr || !prev) {
@@ -125,10 +133,39 @@ export async function POST(req: Request) {
 
   const result = computeScoreResult(profile, performance);
 
+  const duplicate = await findRecentAssessmentDuplicate({
+    supabase,
+    userId: auth.id,
+    hybridScore: result.hybridScore,
+    athleticAge: result.athleticAge,
+    reliabilityPct: result.reliabilityPct,
+  });
+  if (duplicate) {
+    return NextResponse.json({
+      ok: true,
+      deduplicated: true,
+      id: duplicate.id,
+      createdAt: duplicate.createdAt,
+      hybridScore: result.hybridScore,
+      athleticAge: result.athleticAge,
+      reliabilityPct: result.reliabilityPct,
+      profileLabel: result.profileLabel,
+      profileKey: result.profileId,
+      limiter: result.limiter,
+    });
+  }
+
+  const purchaseId = await resolvePurchaseIdForCloudAssessment({
+    supabase,
+    jwtUserId: auth.id,
+    jwtEmail: auth.email,
+  });
+
   const { data: inserted, error: insertErr } = await supabase
     .from("assessments")
     .insert({
-      user_id: userId,
+      user_id: auth.id,
+      purchase_id: purchaseId,
       hybrid_score: result.hybridScore,
       athletic_age: result.athleticAge,
       reliability_pct: result.reliabilityPct,

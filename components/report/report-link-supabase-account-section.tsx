@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ export function ReportLinkSupabaseAccountSection({
   const [otpSent, setOtpSent] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const headingId = useId();
 
   const refreshSession = useCallback(async () => {
     const sb = createBrowserSupabase();
@@ -124,11 +125,10 @@ export function ReportLinkSupabaseAccountSection({
   if (!supabaseBrowserConfigured) {
     return (
       <section
-        id="report-supabase-account"
         className="scroll-mt-28 rounded-2xl border border-border bg-surface/30 px-4 py-3 text-sm text-muted"
-        aria-labelledby="report-link-account-heading"
+        aria-labelledby={headingId}
       >
-        <h2 id="report-link-account-heading" className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+        <h2 id={headingId} className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
           Compte Supabase
         </h2>
         <p className="mt-2 leading-relaxed">
@@ -144,11 +144,10 @@ export function ReportLinkSupabaseAccountSection({
   if (status.kind === "unavailable") {
     return (
       <section
-        id="report-supabase-account"
         className="scroll-mt-28 rounded-2xl border border-border bg-surface/30 px-4 py-3 text-sm text-muted"
-        aria-labelledby="report-link-account-heading"
+        aria-labelledby={headingId}
       >
-        <h2 id="report-link-account-heading" className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+        <h2 id={headingId} className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
           Compte Supabase
         </h2>
         <p className="mt-2 leading-relaxed">
@@ -161,11 +160,10 @@ export function ReportLinkSupabaseAccountSection({
   if (status.kind === "no_row") {
     return (
       <section
-        id="report-supabase-account"
         className="scroll-mt-28 rounded-2xl border border-border bg-surface/30 px-4 py-3 text-sm text-muted"
-        aria-labelledby="report-link-account-heading"
+        aria-labelledby={headingId}
       >
-        <h2 id="report-link-account-heading" className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+        <h2 id={headingId} className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
           Compte Supabase
         </h2>
         <p className="mt-2 leading-relaxed">
@@ -179,11 +177,10 @@ export function ReportLinkSupabaseAccountSection({
   if (status.kind === "linked") {
     return (
       <section
-        id="report-supabase-account"
         className="scroll-mt-28 rounded-2xl border border-neon/25 bg-neon/5 px-4 py-3 text-sm text-foreground/95"
-        aria-labelledby="report-link-account-heading"
+        aria-labelledby={headingId}
       >
-        <h2 id="report-link-account-heading" className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+        <h2 id={headingId} className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
           Compte Supabase
         </h2>
         <p className="mt-2 leading-relaxed">
@@ -196,11 +193,10 @@ export function ReportLinkSupabaseAccountSection({
 
   return (
     <section
-      id="report-supabase-account"
       className="scroll-mt-28 rounded-2xl border border-border bg-surface/40 px-4 py-4 text-sm"
-      aria-labelledby="report-link-account-heading"
+      aria-labelledby={headingId}
     >
-      <h2 id="report-link-account-heading" className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+      <h2 id={headingId} className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
         Compte Supabase
       </h2>
       <p className="mt-2 max-w-2xl leading-relaxed text-foreground/90">

@@ -56,7 +56,11 @@ export function ResultsCloudAssessmentSave({
         }
         return;
       }
-      setOkMsg("Bilan enregistré dans le cloud.");
+      setOkMsg(
+        r.deduplicated
+          ? "Ce bilan était déjà enregistré — aucun doublon créé."
+          : "Bilan enregistré dans le cloud.",
+      );
     } finally {
       setSaving(false);
     }

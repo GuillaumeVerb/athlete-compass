@@ -79,10 +79,10 @@ Tant que `stripeCheckout` est `false`, les CTA checkout restent en **navigation 
 
 ## Prochaines briques V2 (code / produit)
 
-1. **Migrations `001`–`008`** appliquées sur ton instance ? sinon `supabase db push` ou copier-coller depuis `docs/supabase/migrations/`.
-2. **Stripe + Resend + prod** : suivre **`V2_A_FAIRE.md`** + curl health ci-dessus.
-3. **PDF** : route **`GET /api/report/pdf`** (aperçu `pdf-lib`, cookie requis) ; persistance **`pdf_url`** + Storage Supabase — à faire.
-4. **Auth** (magic link) + `user_id` sur achats / rapports.
+1. **Migrations** sur l’instance : au minimum **`001`–`008`** ; pour la prod sereine et le reste du lot, suivre **`docs/A_FAIRE_OPERATEUR.md`** (**`009`–`013`**, **`011`/`012`** RLS).
+2. **Stripe (+ optionnel Resend) + prod** : suivre **`V2_A_FAIRE.md`** + curl health ci-dessus.
+3. **PDF** : la route **`GET /api/report/pdf`** (aperçu) est là ; la **persistance `pdf_url` + bucket Storage** reste côté opérateur (**migration `009`**, variable bucket).
+4. **Auth** (magic link, redirect `/report`) + polish `user_id` sur achats / rapports — produit plus tard ; le flux cookie + checkout fonctionne sans.
 
 ---
 

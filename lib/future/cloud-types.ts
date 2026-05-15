@@ -83,6 +83,8 @@ export interface AssessmentListItem {
   limiter: string;
   source?: AssessmentSource;
   previousAssessmentId?: string | null;
+  /** Produit Stripe lié si enregistrement avec cookie rapport valide. */
+  purchaseProductKey?: PurchaseProductKey | null;
 }
 
 /** Delta affiché comparateur avant → après (V3). */

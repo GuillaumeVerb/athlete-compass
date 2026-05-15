@@ -1,18 +1,21 @@
 import { NextResponse } from "next/server";
 import { isUuid } from "@/lib/uuid";
+import { purchaseProductKeyFromEmbed } from "@/lib/purchase/purchase-product-key-from-embed";
 import { qualityLabelFr, scoreToQuality } from "@/lib/scoring/utils";
 import { createAdminSupabase } from "@/lib/supabase/admin-client";
-import { getUserIdFromSupabaseAccessToken } from "@/lib/supabase/verify-access-token";
+import { getSupabaseUserFromAccessToken } from "@/lib/supabase/verify-access-token";
 import type { NextBestMovePlan, PerformanceInput, ScoreBreakdown, UserProfile } from "@/lib/types";
 
 export const runtime = "nodejs";
 
-async function userIdFromBearer(req: Request): Promise<string | null> {
+async function authUserFromBearer(
+  req: Request,
+): Promise<{ id: string; email: string | null } | null> {
   const h = req.headers.get("authorization");
   if (!h?.toLowerCase().startsWith("bearer ")) return null;
   const jwt = h.slice(7).trim();
   if (!jwt) return null;
-  return getUserIdFromSupabaseAccessToken(jwt);
+  return getSupabaseUserFromAccessToken(jwt);
 }
 
 export async function GET(
@@ -33,18 +36,18 @@ export async function GET(
     );
   }
 
-  const userId = await userIdFromBearer(_req);
-  if (!userId) {
+  const auth = await authUserFromBearer(_req);
+  if (!auth) {
     return NextResponse.json({ ok: false, error: "auth_required" }, { status: 401 });
   }
 
   const { data, error } = await supabase
     .from("assessments")
     .select(
-      "id, created_at, hybrid_score, athletic_age, reliability_pct, profile_label, profile_key, limiter, next_best_move, breakdown, goals_4_weeks, performance_snapshot, profile_snapshot, source, previous_assessment_id",
+      "id, created_at, hybrid_score, athletic_age, reliability_pct, profile_label, profile_key, limiter, next_best_move, breakdown, goals_4_weeks, performance_snapshot, profile_snapshot, source, previous_assessment_id, purchase_id, purchases(product_key)",
     )
     .eq("id", id)
-    .eq("user_id", userId)
+    .eq("user_id", auth.id)
     .maybeSingle();
 
   if (error) {
@@ -82,6 +85,9 @@ export async function GET(
       source: (data.source as string) ?? "manual",
       previousAssessmentId:
         (data.previous_assessment_id as string | null) ?? null,
+      purchaseProductKey: purchaseProductKeyFromEmbed(
+        (data as { purchases?: unknown }).purchases,
+      ),
     },
   });
 }

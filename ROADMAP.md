@@ -43,7 +43,7 @@ Vision : un **diagnostic de performance hybride** court (âge athlétique, Hybri
 | **Critères de succès** | Premier paiement réel ; taux de conversion pricing → checkout > objectif interne. |
 | **Métriques** | CTR page pricing ; conversion checkout ; panier moyen ; abandon checkout ; taux d’ouverture email. |
 
-**Mémo implémentation V2 (code)** : checkout Stripe + snapshot + option `supabaseAccessToken` ; webhook + `purchase/complete` → `purchases` / `premium_reports` ; cookie `ac_report_unlock` ; PDF avec gate `paid` + Bearer (`user_id` ou email) ; `/report?unlocked=1` sans Resend.
+**Mémo implémentation V2 (code)** : checkout Stripe + snapshot + option `supabaseAccessToken` ; webhook + `purchase/complete` → `purchases` / `premium_reports` ; cookie `ac_report_unlock` ; PDF avec gate `paid` + Bearer (`user_id` ou email) ; `/report?unlocked=1` sans Resend ; bilans `assessments` + comparaison courbes local/cloud sur `/results` ; `purchase_id` sur bilan si cookie + JWT (**migration `013`** côté instance).
 
 ---
 
@@ -52,9 +52,10 @@ Vision : un **diagnostic de performance hybride** court (âge athlétique, Hybri
 | | |
 | --- | --- |
 | **Objectif produit** | Créer de la **rétention** : revenir après un mois, retester, voir l’évolution. |
-| **Features** | Compte utilisateur ; liste des bilans datés ; courbes âge athlétique / Hybrid Score (**déjà amorcé en local sur `/results`** : série + courbe navigateur) ; comparaison avant-après ; protocole de **retest 30 jours** guidé ; rappels optionnels (email). |
-| **Écrans** | Dashboard “Mes bilans” ; détail d’un bilan ; lancement retest ; synthèse progression. |
-| **Données** | Historique `assessments` + `performance_tests` liés ; éventuellement snapshots de profil. |
+| **Features livrées (repo)** | **Mes bilans** (`/bilans`) : liste, courbes cloud (≥ 2 bilans), badges source / achat lié ; **détail** (`/bilans/[id]`) + carte **progression vs bilan précédent** ; **API** `GET/POST /api/assessments`, détail, `GET /api/assessments/compare` ; enregistrement **retest** (`source` + `previous_assessment_id`) ; **rappels retest** (programmation + cron) ; **comparaison local ↔ cloud** sur **`/results#progression-local-cloud`** (courbes + export SVG) ; lien **bilan ↔ achat** (`purchase_id`, cookie + JWT — migration **`013`**). |
+| **Suite V3 (backlog)** | Table **`performance_tests`** (normalisation tests) ; rappels **email** en prod fiables (Resend + `CRON_SECRET`) ; page **synthèse progression** dédiée ; **`/next-test`** enrichi (date du dernier bilan cloud, checklist retest, lien ancré Performances). |
+| **Écrans** | Dashboard « Mes bilans » ; détail d’un bilan ; lancement retest + rappels ; comparaison sur `/results` ; protocole **Prochain test** (`/next-test`). |
+| **Données** | Historique **`assessments`** (+ `purchase_id` optionnel) ; `retest_reminders` ; cible **`performance_tests`** (optionnel) — voir **`docs/FUTURE_ARCHITECTURE.md`** § V3. |
 | **Architecture cible** | [`docs/FUTURE_ARCHITECTURE.md`](docs/FUTURE_ARCHITECTURE.md) — section *V3 — Bilans, historique et retest*. |
 | **Complexité technique** | Moyenne — modèle de données versionné, migrations, requêtes temporelles. |
 | **Risques** | Coût stockage ; complexité UX (trop de chiffres sans narration). |

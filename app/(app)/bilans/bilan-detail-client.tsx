@@ -9,6 +9,7 @@ import {
   type AssessmentDetailClient,
 } from "@/lib/assessments/assessments-api-client";
 import type { AssessmentCompareDelta } from "@/lib/future/cloud-types";
+import { productKeyLabelFr } from "@/lib/purchase/product-key-label";
 import { profileDescription } from "@/lib/scoring/profiles";
 import type { AthleticProfileId, ScoreResult } from "@/lib/types";
 import { AthleticAgeCard } from "@/components/results/athletic-age-card";
@@ -131,6 +132,11 @@ export function BilanDetailClient({ id }: { id: string }) {
           <div className="mt-2 flex flex-wrap gap-2">
             <Badge variant="secondary">{assessment.profileLabel}</Badge>
             <Badge variant="outline">{assessment.source}</Badge>
+            {assessment.purchaseProductKey ? (
+              <Badge variant="outline" className="border-neon/30 text-neon/90">
+                {productKeyLabelFr(assessment.purchaseProductKey)}
+              </Badge>
+            ) : null}
           </div>
         </div>
       </div>

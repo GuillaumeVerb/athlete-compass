@@ -120,7 +120,7 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <section className="space-y-4" aria-labelledby="offers-heading">
+      <section className="space-y-4 scroll-mt-28" aria-labelledby="offers-heading">
         <h2 id="offers-heading" className="text-display text-lg font-semibold text-foreground">
           Offres
         </h2>

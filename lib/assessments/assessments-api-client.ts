@@ -1,11 +1,22 @@
 "use client";
 
-import type { AssessmentCompareDelta } from "@/lib/future/cloud-types";
+import type {
+  AssessmentCompareDelta,
+  PurchaseProductKey,
+} from "@/lib/future/cloud-types";
 import { getSupabaseAccessToken } from "@/lib/plans/sync-plan-cloud-client";
 import type { NextBestMovePlan, PerformanceInput, ScoreBreakdown, UserProfile } from "@/lib/types";
 
 function authHeaders(token: string): HeadersInit {
   return { Authorization: `Bearer ${token}` };
+}
+
+/** Même onglet : rafraîchir listes / courbes cloud (ex. comparaison sur `/results`). */
+export const CLOUD_ASSESSMENT_LIST_CHANGED_EVENT = "ac-cloud-assessment-list-changed";
+
+export function notifyCloudAssessmentListChanged(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(CLOUD_ASSESSMENT_LIST_CHANGED_EVENT));
 }
 
 export type AssessmentListItemClient = {
@@ -18,6 +29,7 @@ export type AssessmentListItemClient = {
   limiter: string;
   source: string;
   previousAssessmentId: string | null;
+  purchaseProductKey?: PurchaseProductKey | null;
 };
 
 export type AssessmentDetailClient = {
@@ -37,6 +49,7 @@ export type AssessmentDetailClient = {
   profileSnapshot: UserProfile;
   source: string;
   previousAssessmentId: string | null;
+  purchaseProductKey?: PurchaseProductKey | null;
 };
 
 export async function fetchAssessmentsList(limit = 20): Promise<
@@ -123,7 +136,7 @@ export async function postCurrentAssessment(body: {
   source?: "manual" | "retest_30d" | "import";
   previousAssessmentId?: string;
 }): Promise<
-  | { ok: true; id: string; createdAt: string }
+  | { ok: true; id: string; createdAt: string; deduplicated?: boolean }
   | { ok: false; error: string; skipped?: boolean }
 > {
   const token = await getSupabaseAccessToken();
@@ -141,6 +154,7 @@ export async function postCurrentAssessment(body: {
     createdAt?: string;
     error?: string;
     reason?: string;
+    deduplicated?: boolean;
   };
 
   if (data.skipped) {
@@ -149,5 +163,11 @@ export async function postCurrentAssessment(body: {
   if (!res.ok || !data.ok || !data.id || !data.createdAt) {
     return { ok: false, error: data.error ?? "failed" };
   }
-  return { ok: true, id: data.id, createdAt: data.createdAt };
+  notifyCloudAssessmentListChanged();
+  return {
+    ok: true,
+    id: data.id,
+    createdAt: data.createdAt,
+    deduplicated: Boolean(data.deduplicated),
+  };
 }

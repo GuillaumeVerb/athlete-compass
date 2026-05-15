@@ -31,6 +31,7 @@ import { useDailyStepsCloudPull } from "@/lib/daily/use-daily-steps-cloud-pull";
 import { AthleticAgeCard } from "@/components/results/athletic-age-card";
 import { HybridScoreCard } from "@/components/results/hybrid-score-card";
 import { ScoreSnapshotsLocalSection } from "@/components/results/score-snapshots-local";
+import { ScoreLocalCloudCompare } from "@/components/results/score-local-cloud-compare";
 import { ResultsCloudAssessmentSave } from "@/components/results/results-cloud-assessment-save";
 import { ResultsRadarChart } from "@/components/results/radar-chart";
 import { ProfileCard } from "@/components/results/profile-card";
@@ -280,6 +281,8 @@ export function ResultsClient() {
         entries={scoreSnapshots}
         hybridDampeningActive={result.reliabilityPct < 55}
       />
+
+      <ScoreLocalCloudCompare />
 
       <ResultsCloudAssessmentSave profile={profile} performance={perf} />
 

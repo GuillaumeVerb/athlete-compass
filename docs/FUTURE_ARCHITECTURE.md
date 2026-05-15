@@ -197,9 +197,11 @@ Les structures persistées et payloads rapport sont décrites dans **`lib/future
 ### État actuel dans le repo
 
 - Migration **`20260507120000_assessments.sql`** : table **`assessments`** + RLS pour le rôle **`authenticated`** (lecture / écriture sur ses propres `user_id`). Les routes Next.js valident le **JWT** puis insèrent via la **service role** (contourne RLS).
-- **`POST /api/assessments`** : corps aligné sur le snapshot checkout (`profile`, `performance`) + optionnel `source`, `previousAssessmentId` (même utilisateur).
-- **`GET /api/assessments`**, **`GET /api/assessments/:id`**, **`GET /api/assessments/compare`** : API liste, détail, comparaison.
-- Pages **`/bilans`** et **`/bilans/[id]`** : liste + détail (cartes alignées sur l’écran Résultats).
+- Migration **`013`** (fichiers `docs/supabase/migrations/013_*` / `supabase/migrations/`) : colonne **`purchase_id`** (lien optionnel bilan ↔ achat Stripe) — à appliquer sur l’instance.
+- **`POST /api/assessments`** : corps aligné sur le snapshot checkout (`profile`, `performance`) + optionnel `source`, `previousAssessmentId` (même utilisateur) ; dédup court terme ; résolution **`purchase_id`** si cookie rapport + JWT.
+- **`GET /api/assessments`**, **`GET /api/assessments/:id`**, **`GET /api/assessments/compare`** : API liste (embed produit achat), détail, comparaison.
+- Pages **`/bilans`** et **`/bilans/[id]`** : liste + détail (cartes alignées sur l’écran Résultats) ; courbes tendance cloud ; lien vers comparaison local/cloud sur **`/results#progression-local-cloud`**.
+- **Résultats** : section **comparaison local ↔ cloud** (courbes superposées, export SVG, rafraîchissement après `POST` bilan).
 - **`plan_instances`** + **`/api/plan/snapshot`** / **`/api/plan/history`** : historique des **plans** (JSON `weeks`).
 - **`lib/future/cloud-types.ts`** : types bilan / liste / delta.
 - Progression plan : **`localStorage`** (`plan-progress-storage`) — V4 pourra synchroniser.

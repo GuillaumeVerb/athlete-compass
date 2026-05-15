@@ -15,6 +15,7 @@ import {
   postRetestReminder,
   type RetestReminderListItem,
 } from "@/lib/assessments/retest-reminders-api-client";
+import { productKeyLabelFr } from "@/lib/purchase/product-key-label";
 import { subscribeSupabaseSession } from "@/lib/plans/sync-plan-cloud-client";
 import { DEMO_PERFORMANCE, DEMO_PROFILE } from "@/lib/mock-data";
 import { loadPerformance, loadProfile } from "@/lib/storage";
@@ -127,6 +128,9 @@ export function BilansClient() {
       return;
     }
     await load();
+    if (res.deduplicated) {
+      setNote("Ce bilan était déjà enregistré il y a quelques instants — pas de doublon.");
+    }
   }
 
   async function onSaveRetest() {
@@ -162,13 +166,17 @@ export function BilansClient() {
       return;
     }
     await load();
-    queueMicrotask(() => {
-      setNote(
-        anchorDateLabel
-          ? `Bilan enregistré en mode retest, relié au snapshot du ${anchorDateLabel}.`
-          : "Bilan enregistré en mode retest.",
-      );
-    });
+    if (res.deduplicated) {
+      setNote("Ce bilan était déjà enregistré il y a quelques instants — pas de doublon.");
+    } else {
+      queueMicrotask(() => {
+        setNote(
+          anchorDateLabel
+            ? `Bilan enregistré en mode retest, relié au snapshot du ${anchorDateLabel}.`
+            : "Bilan enregistré en mode retest.",
+        );
+      });
+    }
   }
 
   async function onScheduleRetestReminder() {
@@ -412,6 +420,18 @@ export function BilansClient() {
         </p>
       ) : null}
 
+      {status === "ready" ? (
+        <p className="text-xs text-muted">
+          Courbes <span className="text-foreground/90">cloud seules</span> ci-dessous. Pour les
+          superposer à l’historique <strong className="font-medium text-foreground/90">local</strong>{" "}
+          (même navigateur, page Performances), ouvre{" "}
+          <Link href="/results#progression-local-cloud" className="text-neon underline">
+            Résultats — comparaison local / cloud
+          </Link>
+          .
+        </p>
+      ) : null}
+
       {status === "ready" ? <BilansTrendCharts items={items} /> : null}
 
       {status === "loading" ? (
@@ -469,6 +489,14 @@ export function BilansClient() {
                     <Badge variant="outline" className="text-[10px] font-normal">
                       {sourceLabel(row.source)}
                     </Badge>
+                    {row.purchaseProductKey ? (
+                      <Badge
+                        variant="outline"
+                        className="border-neon/30 text-[10px] font-normal text-neon/90"
+                      >
+                        {productKeyLabelFr(row.purchaseProductKey)}
+                      </Badge>
+                    ) : null}
                   </div>
                 </div>
               </Link>

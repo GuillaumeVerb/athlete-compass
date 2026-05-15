@@ -92,11 +92,13 @@ export default async function ReportPage() {
                 cookieExpUnix={unlock.exp}
                 receipt={purchaseReceipt}
               />
-              <ReportLinkSupabaseAccountSection
-                stripeCheckoutSessionId={unlock.sessionId}
-                initialStatus={accountLinkStatus}
-                supabaseBrowserConfigured={supabaseBrowserConfigured}
-              />
+              <section id="report-supabase-account" className="scroll-mt-28">
+                <ReportLinkSupabaseAccountSection
+                  stripeCheckoutSessionId={unlock.sessionId}
+                  initialStatus={accountLinkStatus}
+                  supabaseBrowserConfigured={supabaseBrowserConfigured}
+                />
+              </section>
               <ReportStripeBillingPortalButton
                 stripeCheckoutSessionId={unlock.sessionId}
                 stripeReady={stripeCheckoutReady}
@@ -132,7 +134,25 @@ export default async function ReportPage() {
           />
         </>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <>
+          <section
+            id="report-supabase-account"
+            className="scroll-mt-28 rounded-2xl border border-border bg-surface/30 px-4 py-4 text-sm text-muted"
+          >
+            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+              Compte Supabase
+            </h2>
+            <p className="mt-2 max-w-2xl leading-relaxed">
+              La liaison achat ↔ compte (et les actions PDF avec Bearer) apparaît ici{" "}
+              <strong className="font-medium text-foreground/90">après</strong> déblocage du rapport.
+              Commence par une offre sur{" "}
+              <Link href="/pricing" className="text-neon underline">
+                Tarifs
+              </Link>
+              , puis reviens depuis la confirmation de paiement ou ton lien post-achat.
+            </p>
+          </section>
+          <div className="grid gap-4 md:grid-cols-2">
           <LockedCard
             title="Âge par système"
             description="Répartition cardio / force / résilience estimée."
@@ -169,6 +189,7 @@ export default async function ReportPage() {
             teaser="J+30 · même protocole court · PDF étendu (V2+)"
           />
         </div>
+        </>
       )}
 
       {unlock ? (
