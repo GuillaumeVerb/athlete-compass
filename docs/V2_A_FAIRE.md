@@ -91,4 +91,4 @@ Sans cette config, le bouton **Recevoir le lien** peut échouer silencieusement 
 
 ## Suite produit / code (hors ce fichier)
 
-Priorités typiques après la config ci-dessus : **RLS** côté client, **portail client Stripe**, **auth** (magic link produit global). Voir **[`V2_CHECKLIST.md`](V2_CHECKLIST.md)** et **[`FUTURE_ARCHITECTURE.md`](FUTURE_ARCHITECTURE.md)**.
+Priorités typiques après la config ci-dessus : **RLS** côté client, **portail client Stripe**, **auth** (magic link produit global). Voir **[`V2_CHECKLIST.md`](V2_CHECKLIST.md)** et **[`FUTURE_ARCHITECTURE.md`](FUTURE_ARCHITECTURE.md)**. Cadrage **suivi long terme** (bilans / jalons vs journal d’entraînement) : **[`ROADMAP.md`](../ROADMAP.md)** § *Suivi long terme — cadrage produit*.
