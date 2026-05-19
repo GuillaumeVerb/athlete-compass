@@ -1,8 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { isUuid } from "@/lib/uuid";
+import {
+  CLOUD_ASSESSMENT_LIST_CHANGED_EVENT,
+  fetchAssessmentsList,
+  type AssessmentListItemClient,
+} from "@/lib/assessments/assessments-api-client";
+import { subscribeSupabaseSession } from "@/lib/plans/sync-plan-cloud-client";
 import { performancesHrefFocused } from "@/lib/performance/performance-focus";
 import {
   TEST_PROTOCOLS,
@@ -57,6 +64,41 @@ export function NextTestContent() {
   const retestOk = retestAnchor.length > 0 && isUuid(retestAnchor);
   const raw = params.get("test") ?? "row2k";
   const key = performanceTestKeyFromQuery(raw);
+  const [sessionResolved, setSessionResolved] = useState(false);
+  const [hasSession, setHasSession] = useState(false);
+  const [latestCloud, setLatestCloud] = useState<AssessmentListItemClient | null>(null);
+  const [cloudLoading, setCloudLoading] = useState(false);
+
+  useEffect(() => {
+    return subscribeSupabaseSession((has) => {
+      setSessionResolved(true);
+      setHasSession(has);
+      if (!has) {
+        setLatestCloud(null);
+        setCloudLoading(false);
+        return;
+      }
+      setCloudLoading(true);
+      void fetchAssessmentsList(5).then((res) => {
+        setCloudLoading(false);
+        if (res.ok && res.items[0]) setLatestCloud(res.items[0]!);
+        else setLatestCloud(null);
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    const fn = () => {
+      if (!hasSession) return;
+      void fetchAssessmentsList(5).then((res) => {
+        if (res.ok && res.items[0]) setLatestCloud(res.items[0]!);
+        else setLatestCloud(null);
+      });
+    };
+    window.addEventListener(CLOUD_ASSESSMENT_LIST_CHANGED_EVENT, fn);
+    return () => window.removeEventListener(CLOUD_ASSESSMENT_LIST_CHANGED_EVENT, fn);
+  }, [hasSession]);
+
   const proto = TEST_PROTOCOLS[key];
   const extra = EXTRA[key] ?? {
     body: proto.measures,
@@ -76,6 +118,74 @@ export function NextTestContent() {
           Test recommandé : {proto.title}
         </h1>
       </div>
+
+      {sessionResolved && hasSession && !retestOk ? (
+        <Card className="border-border bg-surface/50">
+          <CardContent className="space-y-3 p-5 text-sm text-muted">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted">
+              Bilan cloud
+            </p>
+            {cloudLoading ? (
+              <div className="h-14 animate-pulse rounded-xl bg-surface-elevated/80" />
+            ) : latestCloud ? (
+              <>
+                <p className="font-medium text-foreground">
+                  Dernier enregistrement —{" "}
+                  {new Date(latestCloud.createdAt).toLocaleString("fr-FR", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
+                </p>
+                <p>
+                  Hybrid <span className="text-neon">{latestCloud.hybridScore}</span>
+                  <span className="text-muted"> · fiabilité {latestCloud.reliabilityPct}%</span>
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Button asChild variant="outline" size="sm" className="rounded-lg">
+                    <Link href={`/bilans/${encodeURIComponent(latestCloud.id)}`}>Ouvrir le bilan</Link>
+                  </Button>
+                  <Button asChild variant="secondary" size="sm" className="rounded-lg">
+                    <Link
+                      href={`/next-test?test=${encodeURIComponent(key)}&retestAnchor=${encodeURIComponent(latestCloud.id)}`}
+                    >
+                      Retest depuis ce bilan
+                    </Link>
+                  </Button>
+                  <Button asChild variant="ghost" size="sm" className="rounded-lg text-neon">
+                    <Link href="/results#progression-local-cloud">Local vs cloud</Link>
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <p>
+                Aucun bilan cloud pour l’instant — enregistre depuis{" "}
+                <Link href="/results" className="text-neon underline">
+                  Résultats
+                </Link>{" "}
+                ou{" "}
+                <Link href="/bilans" className="text-neon underline">
+                  Mes bilans
+                </Link>
+                .
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      ) : sessionResolved && !hasSession ? (
+        <Card className="border-border bg-surface/40">
+          <CardContent className="p-5 text-sm text-muted">
+            <p>
+              <span className="font-medium text-foreground/90">Compte Supabase</span> : connecte-toi
+              (ex. page{" "}
+              <Link href="/daily" className="text-neon underline">
+                Aujourd&apos;hui
+              </Link>
+              ) pour voir ton <strong className="font-medium text-foreground/90">dernier bilan cloud</strong>{" "}
+              et chaîner un retest avec ancrage automatique.
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {retestOk ? (
         <Card className="border-neon/25 bg-neon/5">

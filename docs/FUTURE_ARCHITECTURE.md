@@ -202,6 +202,7 @@ Les structures persistées et payloads rapport sont décrites dans **`lib/future
 - **`GET /api/assessments`**, **`GET /api/assessments/:id`**, **`GET /api/assessments/compare`** : API liste (embed produit achat), détail, comparaison.
 - Pages **`/bilans`** et **`/bilans/[id]`** : liste + détail (cartes alignées sur l’écran Résultats) ; courbes tendance cloud ; lien vers comparaison local/cloud sur **`/results#progression-local-cloud`**.
 - **Résultats** : section **comparaison local ↔ cloud** (courbes superposées, export SVG, rafraîchissement après `POST` bilan).
+- **`/next-test`** (`app/(app)/next-test/next-test-content.tsx`) : si **`retestAnchor`** absent et session résolue — carte **Bilan cloud** (chargement du dernier item `fetchAssessmentsList`, écoute **`CLOUD_ASSESSMENT_LIST_CHANGED_EVENT`**) avec CTA `/bilans/[id]`, **`/next-test?test=…&retestAnchor=…`**, lien **`/results#progression-local-cloud`** ; état vide + invitation **Résultats** / **Mes bilans** ; sans session, carte courte vers **`/daily`** ; si **`retestAnchor`** UUID valide, carte **retest** (lien bilan, rappel enregistrement depuis **Mes bilans**) ; bouton **Saisir mes performances** via **`performancesHrefFocused`** pour le test de la query `test`.
 - **`plan_instances`** + **`/api/plan/snapshot`** / **`/api/plan/history`** : historique des **plans** (JSON `weeks`).
 - **`lib/future/cloud-types.ts`** : types bilan / liste / delta.
 - Progression plan : **`localStorage`** (`plan-progress-storage`) — V4 pourra synchroniser.
@@ -230,7 +231,7 @@ Les colonnes `source` et `previous_assessment_id` sont déjà en base. Pistes su
 
 - **Mes bilans** (`/bilans`) : liste, courbes (≥ 2 bilans), **choix explicite du bilan de référence** pour retest + lien protocole aligné sur ce choix.
 - **Détail bilan** (`/bilans/[id]`) : cartes scoring + bloc progression si `previous_assessment_id`.
-- **Retest 30 j** : prolonger **`/next-test`** avec date du dernier bilan, CTA « lancer retest », checklist des tests à refaire (déjà partiellement côté `?focus=` sur Performances).
+- **Prochain test** (`/next-test`) : **fait** — dernier bilan cloud + retest ancré + lien comparaison local/cloud + focalisation saisie sur le test courant (voir § *État actuel*). **Suite possible** : checklist multi-tests, rappels e-mail depuis la page, ou autre narration produit.
 
 ---
 
@@ -276,7 +277,7 @@ La **régénération** peut rester une fonction TypeScript partagée (comme aujo
 
 1. **Auth + RLS** sur données déjà persistées (`purchases`, futur `assessments`, `plan_instances` en lecture utilisateur).
 2. **`POST/GET /api/assessments`**, détail, compare + pages **`/bilans`** (liste, courbes, retest) — fait ; raffinements retest e-mail **à faire**.
-3. **Retest** : champ `source` + lien UI depuis dernier bilan.
+3. **Retest** : champ `source` + lien UI depuis dernier bilan — **fait** côté **`/next-test`** (carte bilan cloud + `retestAnchor`) et flux **Mes bilans** ; e-mail / cron selon config.
 4. **`plan_week_feedback`** + UI sur **`/plan`** puis **`/api/plan/adapt`** minimal (régénération serveur avec même générateur).
 
 ---
