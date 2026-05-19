@@ -54,6 +54,7 @@ Quand **1 à 3** sont cochés sur une instance réelle, le **MVP V2 est fonction
 | V3 | **Retest 30 j** (parcours UI) | **`/next-test`** : dernier bilan cloud, retest ancré (`retestAnchor`), lien **local vs cloud** (`/results#progression-local-cloud`) — voir **`ROADMAP.md`** § V3. |
 | V3 | **Rappels retest e-mail** (cron) | Migrations **`008`** + env **`CRON_SECRET`** — détail dans **`V2_A_FAIRE.md`** (rappels programmables). |
 | V3 | **Courbes / progression** | Comparaison local ↔ cloud sur **`/results`** (données `assessments`) ; **page synthèse progression** dédiée = backlog produit. |
+| — | **Cadrage « long terme »** | **`ROADMAP.md`** § *Suivi long terme — cadrage produit* — jalons (bilans) vs journal d’entraînement continu. |
 
 ---
 
