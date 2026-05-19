@@ -6,7 +6,7 @@ Liste **centralisée** des actions hors code (ou après `git pull`). Le détail 
 
 ## V2 « prêt à vendre » (minimum)
 
-Côté **code**, le parcours principal (checkout → webhook / `purchase/complete` → rapport débloqué, PDF aperçu, portail Stripe, bilans cloud, comparaison local/cloud sur **`/results`**, lien achat ↔ bilan si cookie + JWT) est **en place**. Pour un **MVP exploitable**, il reste surtout à **valider sur ton instance** :
+Côté **code**, le parcours principal (checkout → webhook / `purchase/complete` → rapport débloqué, PDF aperçu, portail Stripe, bilans cloud, comparaison local/cloud sur **`/results`**, page **`/next-test`** avec dernier bilan cloud et retest ancré, lien achat ↔ bilan si cookie + JWT) est **en place**. Pour un **MVP exploitable**, il reste surtout à **valider sur ton instance** :
 
 1. **Migrations** dans l’ordre utile : **`011`** / **`012`** (RLS / Security Advisor), **`013`** (lien bilan ↔ achat), **`009`** + env bucket si tu veux le **PDF en Storage** — voir section Supabase ci-dessous.
 2. **Stripe** (test puis prod) jusqu’à ce que `pnpm check:v2` ou `GET /api/health/cloud` indique un checkout utilisable (`stripeCheckout: true` dans la logique health).
@@ -51,9 +51,10 @@ Quand **1 à 3** sont cochés sur une instance réelle, le **MVP V2 est fonction
 | Haute | **Resend** post-achat | Optionnel mais utile — `V2_A_FAIRE.md` § Resend. |
 | Moyenne | **Lier achat ↔ bilan** (`assessment` / `purchase_id`) | Migration **`013`** + cookie rapport au POST ; badge « Mes bilans ». |
 | Moyenne | **Analytics** (tunnel profil → perf → résultats → pricing) | Pas branché dans le repo. |
-| V3 | **Retest 30 j** guidé + rappels cron | Migrations `008` + `CRON_SECRET` — `V2_A_FAIRE.md`. |
-| V3 | **Courbes cloud** alignées sur l’historique local `/results` | Données `assessments` + UX comparaison. |
+| V3 | **Retest 30 j** (parcours UI) | **`/next-test`** : dernier bilan cloud, retest ancré (`retestAnchor`), lien **local vs cloud** (`/results#progression-local-cloud`) — voir **`ROADMAP.md`** § V3. |
+| V3 | **Rappels retest e-mail** (cron) | Migrations **`008`** + env **`CRON_SECRET`** — détail dans **`V2_A_FAIRE.md`** (rappels programmables). |
+| V3 | **Courbes / progression** | Comparaison local ↔ cloud sur **`/results`** (données `assessments`) ; **page synthèse progression** dédiée = backlog produit. |
 
 ---
 
-_Dernière mise à jour : MVP V2 côté code ; fin de boucle = instance (migrations + Stripe test) + section « prêt à vendre » ci-dessus._
+_Dernière mise à jour : mai 2026 — MVP V2 côté code ; V3 `/next-test` relié au dernier bilan cloud ; fin de boucle opérateur = instance (migrations + Stripe test) + section « prêt à vendre » ci-dessus._
