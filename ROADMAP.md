@@ -4,6 +4,12 @@ Vision : un **diagnostic de performance hybride** court (âge athlétique, Hybri
 
 ---
 
+## Suivi long terme — cadrage produit
+
+Le **suivi des performances dans le temps** est **pertinent** pour la rétention, à condition de rester **clairsemé** : **bilans** répétés (cloud, retest ~30 j), historique du score (local puis comparatif **local ↔ cloud** sur `/results`), évolution du limiteur — pas un **journal d’entraînement** jour après jour (volume, séries, RPE détaillé : **non-objectif** dans la section suivante). Les intégrations wearables prévues en **V6** visent surtout à **réduire la saisie** autour des mêmes épreuves « officielles », pas à remplacer le diagnostic par un flux d’activité continu.
+
+---
+
 ## Non-objectifs V1
 
 - Pas de réseau social ni fil d’actualité communautaire.

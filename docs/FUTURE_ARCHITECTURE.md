@@ -192,7 +192,7 @@ Les structures persistées et payloads rapport sont décrites dans **`lib/future
 
 ## V3 — Bilans, historique et retest (~30 jours)
 
-**Objectif** : une personne connectée retrouve **plusieurs bilans datés**, compare avant/après, et suit un **cadencement de retest** (sans promesse médicale).
+**Objectif** : une personne connectée retrouve **plusieurs bilans datés**, compare avant/après, et suit un **cadencement de retest** (sans promesse médicale). **Cadrage** : le « long terme » reste en **jalons** (bilans + comparatifs), pas en journalisation quotidienne d’entraînement — voir **`ROADMAP.md`** § *Suivi long terme — cadrage produit*.
 
 ### État actuel dans le repo
 
